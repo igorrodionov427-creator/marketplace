@@ -36,6 +36,7 @@ function coinCards() {
       <span class="coin__sym" style="color:${w.accent}">${esc(w.symbol)}</span>
       <span>${esc(w.name)}</span>
       <span class="coin__net">${esc(w.network)}</span>
+      ${w.badge ? `<span class="coin__badge">${esc(w.badge)}</span>` : ""}
     </button>`).join("");
 }
 

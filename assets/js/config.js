@@ -66,6 +66,19 @@ export const SITE = {
       address: "AHjo5YaXJRsQavcND2N7CPyffimmdDVg64bMUGDHsAht",
       uriScheme: null, // plain-address QR
       accent: "#14F195",
+      badge: "Low fee",
+    },
+    {
+      id: "USDTBEP",
+      name: "Tether",
+      symbol: "USDT",
+      network: "BEP20 · BNB Smart Chain",
+      address: "0xf38f6A9057efb3D2be5eA956b597e6A7941E4DE9",
+      uriScheme: null, // plain-address QR
+      accent: "#F0B90B",
+      // Note shown on the payment card. BEP20 fees are tiny but NOT zero — edit
+      // this text freely (e.g. "No fee" / "Без комиссии") if you prefer.
+      badge: "Low fee",
     },
   ],
 
