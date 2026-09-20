@@ -1,4 +1,4 @@
-import { getProduct, getProducts, upgradeSeedImages } from "../db.js?v=2";
+import { getPublishedProduct, getPublishedProducts } from "../db.js?v=2";
 import { Cart } from "../store.js";
 import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, qs } from "../ui.js";
 import { t } from "../i18n.js";
@@ -12,7 +12,7 @@ function stockLine(p) {
 }
 
 async function relatedStrip(current) {
-  const all = await getProducts();
+  const all = await getPublishedProducts();
   const rel = all.filter((p) => p.id !== current.id && p.category === current.category).slice(0, 4);
   const pool = rel.length ? rel : all.filter((p) => p.id !== current.id).slice(0, 4);
   if (!pool.length) return "";
@@ -49,8 +49,7 @@ async function init() {
         <div class="sk" style="height:48px;width:220px;border-radius:var(--r-pill)"></div>
       </div>
     </div>`;
-  await upgradeSeedImages();
-  const p = id ? await getProduct(id) : null;
+  const p = id ? await getPublishedProduct(id) : null;
 
   if (!p) {
     app.innerHTML = `<div class="empty">${icon("box", 44)}<h3>${t("prod_not_found")}</h3><p>${t("prod_not_found_desc")}</p><a class="btn btn--primary" href="index.html" style="margin-top:16px">${icon("arrowLeft", 16)} ${t("back_to_catalog")}</a></div>`;

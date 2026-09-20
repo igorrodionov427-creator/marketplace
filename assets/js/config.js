@@ -131,6 +131,21 @@ export const SITE = {
     { id: "whatsapp", name: "WhatsApp",     value: "+1 (555) 010-2030",     href: "https://wa.me/15550102030",    icon: "phone" },
     { id: "phone",    name: "Phone (US/EU)", value: "+1 (555) 010-2030",    href: "tel:+15550102030",             icon: "phone" },
   ],
+
+  // ---- Order & support delivery to the seller (works on static hosting) -----
+  // On a static host the site can't store data server-side, so every order and
+  // support message is sent to YOU on Telegram.
+  //   1. In Telegram open @BotFather -> /newbot -> copy the bot token.
+  //   2. Open @userinfobot -> copy your numeric "Id" (chatId).
+  //   3. Send your bot any message once (so it can write to you).
+  //   4. Paste both below and set enabled: true.
+  // NOTE: the token is visible in the page source. Use a dedicated bot only for
+  // this, and rotate it in @BotFather if it ever leaks.
+  telegram: {
+    enabled: false,
+    botToken: "",
+    chatId: "",
+  },
 };
 
 // -----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { SITE, ORDER_STATUSES } from "../config.js?v=2";
-import { getProducts, saveProduct, deleteProduct, getOrders, updateOrderStatus, deleteOrder, upgradeSeedImages, getTickets, deleteTicket } from "../db.js?v=2";
+import { getProducts, saveProduct, deleteProduct, getOrders, updateOrderStatus, deleteOrder, getTickets, deleteTicket, ensureAdminSeed, exportProductsJSON, importProductsFromJSON } from "../db.js?v=2";
 import { icon, money, esc, placeholder, initTheme, mountChrome, toast } from "../ui.js";
 
 initTheme();
@@ -122,17 +122,23 @@ async function renderProducts() {
   const panel = document.getElementById("panel");
   let products;
   try {
-    await upgradeSeedImages();
+    await ensureAdminSeed();
     products = await getProducts();
   } catch (err) {
     panel.innerHTML = dbErrorHTML(err);
     return;
   }
   panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:var(--space-3)">
       <p class="muted">${products.length} product${products.length === 1 ? "" : "s"}</p>
-      <button class="btn btn--primary" id="newBtn">${icon("plus", 18)} Add product</button>
+      <div class="row-actions" style="flex-wrap:wrap">
+        <button class="btn btn--ghost btn--sm" id="importBtn">${icon("upload", 15)} Import</button>
+        <button class="btn btn--ghost btn--sm" id="exportBtn">${icon("box", 15)} Export products.json</button>
+        <button class="btn btn--primary btn--sm" id="newBtn">${icon("plus", 16)} Add product</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
     </div>
+    <div class="alert alert--info" style="margin-bottom:var(--space-4);font-size:.82rem">${icon("shield", 14)} <span>To publish to the live site: <b>Export products.json</b> → replace <code>data/products.json</code> in your repo → commit &amp; push.</span></div>
     ${products.length ? `
     <div class="table-wrap">
       <table class="data">
@@ -155,6 +161,22 @@ async function renderProducts() {
     </div>` : `<div class="empty">${icon("box", 44)}<h3>No products yet</h3><p>Add your first product to get started.</p></div>`}`;
 
   document.getElementById("newBtn").addEventListener("click", () => openProductModal(null));
+  document.getElementById("exportBtn").addEventListener("click", async () => {
+    const list = await getProducts();
+    const blob = new Blob([exportProductsJSON(list)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "products.json"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("products.json downloaded — commit it to publish");
+  });
+  document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+  document.getElementById("importFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try { await importProductsFromJSON(await file.text()); toast("Products imported"); renderProducts(); }
+    catch (err) { toast("Import failed: " + err.message, "err"); }
+  });
   panel.querySelectorAll(".edit").forEach((b) => b.addEventListener("click", async () => {
     const p = products.find((x) => x.id === b.dataset.id);
     openProductModal(p);

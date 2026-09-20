@@ -3,6 +3,7 @@ import { Cart } from "../store.js";
 import { createOrder } from "../db.js?v=2";
 import { icon, money, esc, initTheme, mountChrome, toast, copyText } from "../ui.js";
 import { t } from "../i18n.js";
+import { sendOrderNotification } from "../notify.js";
 
 initTheme();
 
@@ -288,6 +289,7 @@ function init() {
       },
     });
 
+    try { await sendOrderNotification(order); } catch {}
     Cart.clear();
     toast(t("order_placed"));
     location.href = `order.html?id=${order.id}`;

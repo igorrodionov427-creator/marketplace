@@ -1,5 +1,5 @@
 import { SITE } from "../config.js?v=2";
-import { ensureSeed, getProducts, upgradeSeedImages } from "../db.js?v=2";
+import { getPublishedProducts } from "../db.js?v=2";
 import { Cart } from "../store.js";
 import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards } from "../ui.js";
 import { t } from "../i18n.js";
@@ -122,9 +122,7 @@ async function init() {
 
   const grid = document.getElementById("grid");
   try {
-    await ensureSeed();
-    await upgradeSeedImages();
-    ALL = await getProducts();
+    ALL = await getPublishedProducts();
   } catch (err) {
     grid.removeAttribute("aria-busy");
     grid.className = "";

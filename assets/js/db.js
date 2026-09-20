@@ -108,6 +108,71 @@ export async function deleteProduct(id) {
   return tx(STORE_PRODUCTS, "readwrite", (os) => os.delete(id));
 }
 
+// ---- Published (shared) catalog -------------------------------------------
+// On a static host (e.g. GitHub Pages) every visitor sees the SAME catalog,
+// read from data/products.json committed to the repo. The admin edits a local
+// IndexedDB workspace and exports an updated products.json to publish.
+const PUBLISHED_URL = "data/products.json";
+
+export async function getPublishedProducts() {
+  try {
+    const res = await fetch(PUBLISHED_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        return data.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      }
+    }
+  } catch {}
+  // fallback if the file is missing: local seed
+  await ensureSeed();
+  await upgradeSeedImages();
+  return getProducts();
+}
+
+export async function getPublishedProduct(id) {
+  const all = await getPublishedProducts();
+  return all.find((p) => p.id === id) || null;
+}
+
+export function exportProductsJSON(list) {
+  return JSON.stringify(list, null, 2);
+}
+
+// seed the admin's local workspace from the published catalog on first use
+export async function ensureAdminSeed() {
+  const count = await tx(STORE_PRODUCTS, "readonly", (os) => reqP(os.count()));
+  if (count > 0 || localStorage.getItem("mkt_admin_seeded")) return;
+  try {
+    const res = await fetch(PUBLISHED_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        const now = Date.now();
+        await tx(STORE_PRODUCTS, "readwrite", (os) =>
+          data.forEach((p, i) => os.put({ ...p, id: p.id || uid(), createdAt: p.createdAt || now - i, updatedAt: now }))
+        );
+        localStorage.setItem("mkt_admin_seeded", "1");
+        return;
+      }
+    }
+  } catch {}
+  await ensureSeed(); // fallback to the inline seed
+  await upgradeSeedImages();
+  localStorage.setItem("mkt_admin_seeded", "1");
+}
+
+export async function importProductsFromJSON(text) {
+  const data = JSON.parse(text);
+  if (!Array.isArray(data)) throw new Error("JSON must be an array of products");
+  const now = Date.now();
+  await tx(STORE_PRODUCTS, "readwrite", (os) => os.clear());
+  await tx(STORE_PRODUCTS, "readwrite", (os) =>
+    data.forEach((p, i) => os.put({ ...p, id: p.id || uid(), createdAt: p.createdAt || now - i, updatedAt: now }))
+  );
+  localStorage.setItem("mkt_admin_seeded", "1");
+}
+
 // ---- Orders -----------------------------------------------------------------
 export async function getOrders() {
   const list = await tx(STORE_ORDERS, "readonly", (os) => reqP(os.getAll()));

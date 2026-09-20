@@ -2,6 +2,7 @@ import { SITE } from "../config.js?v=2";
 import { createTicket } from "../db.js?v=2";
 import { icon, esc, initTheme, mountChrome, toast } from "../ui.js";
 import { t } from "../i18n.js";
+import { sendTicketNotification } from "../notify.js";
 
 initTheme();
 
@@ -87,13 +88,15 @@ function init() {
     if (!f.message.value.trim()) { setError("message", t("required_word")); ok = false; } else setError("message", "");
     if (!ok) { toast(t("err_fix"), "err"); return; }
 
-    await createTicket({
+    const ticket = {
       name: f.name.value.trim(),
       email: f.email.value.trim(),
       subject: f.subject.value.trim(),
       message: f.message.value.trim(),
       lang: document.documentElement.lang,
-    });
+    };
+    await createTicket(ticket);
+    try { await sendTicketNotification(ticket); } catch {}
 
     const panel = form.closest(".panel");
     panel.innerHTML = `

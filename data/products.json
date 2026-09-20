@@ -1,0 +1,82 @@
+[
+  {
+    "id": "p1",
+    "name": "Aurelia Wool Overcoat",
+    "category": "Apparel",
+    "price": 389,
+    "stock": 12,
+    "description": "A tailored double-faced wool overcoat with a clean, elongated silhouette. Fully lined, horn buttons, and a soft shoulder for an effortless drape. A timeless layer for cold-weather dressing.",
+    "images": ["assets/img/products/overcoat-1.jpg", "assets/img/products/overcoat-2.jpg"],
+    "createdAt": 1758300000000
+  },
+  {
+    "id": "p2",
+    "name": "Meridian Automatic Watch",
+    "category": "Watches & Jewelry",
+    "price": 640,
+    "stock": 6,
+    "description": "Swiss-style automatic movement housed in a 40mm brushed-steel case. Sapphire crystal, sunray dial, and a supple leather strap. Water resistant to 50m.",
+    "images": ["assets/img/products/watch-1.jpg", "assets/img/products/watch-2.jpg"],
+    "createdAt": 1758299000000
+  },
+  {
+    "id": "p3",
+    "name": "Nocturne Wireless Headphones",
+    "category": "Audio",
+    "price": 279,
+    "stock": 20,
+    "description": "Over-ear active-noise-cancelling headphones with 40-hour battery life, plush memory-foam cushions, and studio-tuned drivers. USB-C fast charge.",
+    "images": ["assets/img/products/headphones-1.jpg", "assets/img/products/headphones-2.jpg"],
+    "createdAt": 1758298000000
+  },
+  {
+    "id": "p4",
+    "name": "Lumen Ceramic Table Lamp",
+    "category": "Home & Living",
+    "price": 149,
+    "stock": 15,
+    "description": "Hand-glazed ceramic base with a linen drum shade that casts a warm, diffused glow. Dimmable, with a fabric cord and inline switch.",
+    "images": ["assets/img/products/lamp-1.jpg", "assets/img/products/lamp-2.jpg"],
+    "createdAt": 1758297000000
+  },
+  {
+    "id": "p5",
+    "name": "Velvet Rose Eau de Parfum",
+    "category": "Beauty",
+    "price": 118,
+    "stock": 30,
+    "description": "A modern floral built on Damask rose, warm amber, and a whisper of oud. Long-lasting, unisex, 50ml. Presented in a weighted glass flacon.",
+    "images": ["assets/img/products/perfume-1.jpg", "assets/img/products/perfume-2.jpg"],
+    "createdAt": 1758296000000
+  },
+  {
+    "id": "p6",
+    "name": "Obsidian Chess Set",
+    "category": "Collectibles",
+    "price": 210,
+    "stock": 8,
+    "description": "Weighted resin pieces in matte obsidian and bone finishes on a walnut-and-maple board. A heirloom-grade set for the serious player.",
+    "images": ["assets/img/products/chess-1.jpg", "assets/img/products/chess-2.jpg"],
+    "createdAt": 1758295000000
+  },
+  {
+    "id": "p7",
+    "name": "Atlas Leather Weekender",
+    "category": "Bags & Luggage",
+    "price": 465,
+    "stock": 5,
+    "description": "Full-grain vegetable-tanned leather holdall with brass hardware, a suede-lined interior, and a detachable shoulder strap. Ages beautifully.",
+    "images": ["assets/img/products/bag-1.jpg", "assets/img/products/bag-2.jpg"],
+    "createdAt": 1758294000000
+  },
+  {
+    "id": "p8",
+    "name": "Solace Cashmere Scarf",
+    "category": "Apparel",
+    "price": 135,
+    "stock": 24,
+    "description": "Featherweight two-ply Mongolian cashmere, generously sized, with hand-knotted fringe. Impossibly soft and warm without bulk.",
+    "images": ["assets/img/products/scarf-1.jpg", "assets/img/products/scarf-2.jpg"],
+    "createdAt": 1758293000000
+  }
+]
