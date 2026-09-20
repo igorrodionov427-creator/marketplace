@@ -53,10 +53,19 @@ export const SITE = {
       id: "USDT",
       name: "Tether",
       symbol: "USDT",
-      network: "Tether (TRC-20 · TRON)",
+      network: "TRC-20 · TRON",
       address: "TDSLPsDGvY5LTa2bUDeEBPGYbQA6p3Jfor",
       uriScheme: null, // plain-address QR
       accent: "#26A17B",
+    },
+    {
+      id: "USDTSOL",
+      name: "Tether",
+      symbol: "USDT",
+      network: "SPL · Solana",
+      address: "AHjo5YaXJRsQavcND2N7CPyffimmdDVg64bMUGDHsAht",
+      uriScheme: null, // plain-address QR
+      accent: "#14F195",
     },
   ],
 

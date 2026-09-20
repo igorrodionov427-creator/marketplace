@@ -357,7 +357,7 @@ strong, b { font-weight: 600; }
 .panel + .panel { margin-top: var(--space-5); }
 .panel__title { font-family: var(--font-body); font-weight: 600; font-size: .98rem; margin-bottom: var(--space-4); display: flex; align-items: center; gap: 10px; letter-spacing: -.005em; }
 .step-num { width: 25px; height: 25px; border-radius: var(--r-pill); background: var(--primary); color: var(--primary-fg); display: grid; place-items: center; font-family: var(--font-mono); font-size: .78rem; font-weight: 600; }
-.coin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+.coin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: var(--space-3); }
 .coin { position: relative; border: 1px solid var(--border-strong); border-radius: var(--r-input); padding: 13px; cursor: pointer;
   display: flex; flex-direction: column; gap: 3px; text-align: left; background: var(--surface);
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform .1s; }
