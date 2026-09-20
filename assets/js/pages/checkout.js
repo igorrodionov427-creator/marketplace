@@ -1,0 +1,258 @@
+import { SITE, US_STATES } from "../config.js?v=2";
+import { Cart } from "../store.js";
+import { createOrder } from "../db.js?v=2";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText } from "../ui.js";
+import { t } from "../i18n.js";
+
+initTheme();
+
+const items = Cart.items();
+const total = Cart.subtotal();
+let selectedCoin = null;
+
+function summaryHTML() {
+  return `
+    <aside class="summary">
+      <h2 class="panel__title" style="font-size:1.1rem">${icon("bag", 18)} ${t("order_summary")}</h2>
+      <div class="stack" style="--space-4:12px">
+        ${items.map((i) => `
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="cart-item__img" style="width:54px;height:54px;flex:0 0 auto">${i.image ? `<img src="${i.image}" alt="">` : ""}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.name)}</div>
+              <div class="muted" style="font-size:.82rem">${i.qty} × ${money(i.price)}</div>
+            </div>
+            <strong style="font-size:.9rem">${money(i.qty * i.price)}</strong>
+          </div>`).join("")}
+      </div>
+      <div class="summary__total"><span>${t("total_due")}</span><b>${money(total)}</b></div>
+      <p class="hint">${t("pay_exact")}</p>
+    </aside>`;
+}
+
+function coinCards() {
+  return SITE.wallets.map((w) => `
+    <button type="button" class="coin" data-coin="${w.id}">
+      <span class="coin__sym" style="color:${w.accent}">${esc(w.symbol)}</span>
+      <span>${esc(w.name)}</span>
+      <span class="coin__net">${esc(w.network)}</span>
+    </button>`).join("");
+}
+
+function contactFields() {
+  return SITE.checkoutContacts.map((c) => `
+    <div class="field" data-field="${c.id}">
+      <label class="label" for="${c.id}" style="display:flex;align-items:center;gap:6px;color:var(--fg-muted);font-weight:500">${icon(c.icon, 14)} ${esc(c.label)}</label>
+      <input class="input" id="${c.id}" name="${c.id}" type="${c.type}" placeholder="${esc(c.placeholder)}" autocomplete="off">
+    </div>`).join("");
+}
+
+function renderPayBox(w) {
+  const box = document.getElementById("payBox");
+  box.classList.add("is-open");
+  box.innerHTML = `
+    <div class="pay-grid">
+      <div class="qr-frame" id="qr"></div>
+      <div class="stack" style="min-width:0">
+        <div>
+          <div class="label">${t("send_label")} <b>${esc(w.symbol)}</b> — ${esc(w.network)}</div>
+          <div class="addr">
+            <span id="addrText">${esc(w.address)}</span>
+            <button type="button" class="icon-btn" id="copyAddr" style="width:34px;height:34px;flex:0 0 auto" aria-label="${t("addr_copy")}">${icon("copy", 16)}</button>
+          </div>
+        </div>
+        <p class="hint">${t("scan_hint")}</p>
+      </div>
+    </div>`;
+
+  try {
+    const qr = window.qrcode(0, "M");
+    qr.addData(w.address);
+    qr.make();
+    document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 5, margin: 1, scalable: true });
+  } catch (e) {
+    document.getElementById("qr").innerHTML = `<div class="img-ph" style="border-radius:8px">QR</div>`;
+  }
+
+  document.getElementById("copyAddr").addEventListener("click", () => {
+    copyText(w.address).then(() => toast(t("copied")));
+  });
+}
+
+// ---- validation (only these are required) ----------------------------------
+const rules = {
+  address: (v) => (v.trim().length >= 6 ? "" : t("err_address")),
+  state: (v) => (v ? "" : t("err_state")),
+  phone: (v) => {
+    const digits = v.replace(/\D/g, "");
+    if (!v.trim()) return t("err_phone");
+    return digits.length >= 7 && digits.length <= 15 ? "" : t("err_phone");
+  },
+  txhash: (v) => {
+    const val = v.trim();
+    if (!val) return t("err_txhash");
+    return /^(0x)?[a-zA-Z0-9]{8,}$/.test(val) ? "" : t("err_txhash");
+  },
+};
+const REQUIRED = ["address", "state", "phone", "txhash"];
+
+function setError(name, msg) {
+  const field = document.querySelector(`[data-field="${name}"]`);
+  if (!field) return;
+  field.classList.toggle("field--invalid", !!msg);
+  const err = field.querySelector(".error-text");
+  if (err) err.textContent = msg;
+}
+
+function validateField(name, value) {
+  const msg = rules[name] ? rules[name](value) : "";
+  setError(name, msg);
+  return !msg;
+}
+
+function init() {
+  mountChrome("cart.html");
+  const app = document.getElementById("app");
+
+  if (!items.length) {
+    app.innerHTML = `<div class="empty">${icon("cart", 46)}<h3>${t("cart_empty")}</h3><p>${t("cart_empty_desc")}</p><a class="btn btn--primary" href="index.html" style="margin-top:16px">${icon("bag", 16)} ${t("start_shopping")}</a></div>`;
+    return;
+  }
+
+  const stateOpts = `<option value="">${t("select_state")}</option>` +
+    US_STATES.map(([abbr, name]) => `<option value="${abbr}">${esc(name)}</option>`).join("");
+
+  app.innerHTML = `
+    <a class="navlink" href="cart.html" style="display:inline-flex;gap:6px;align-items:center;margin-bottom:var(--space-4)">${icon("arrowLeft", 16)} ${t("back_to_cart")}</a>
+    <h1 style="font-size:2.4rem;margin-bottom:var(--space-5)">${t("checkout")}</h1>
+    <form id="checkoutForm" novalidate>
+      <div class="checkout-layout">
+        <div>
+          <section class="panel">
+            <div class="panel__title"><span class="step-num">1</span> ${t("step_delivery")}</div>
+            <div class="form-grid">
+              <div class="field" data-field="address">
+                <label class="label" for="address">${t("delivery_address")} <span class="req">*</span></label>
+                <textarea class="textarea" id="address" name="address" placeholder="${t("addr_ph")}"></textarea>
+                <div class="error-text"></div>
+              </div>
+              <div class="form-row">
+                <div class="field" data-field="state">
+                  <label class="label" for="state">${t("state")} <span class="req">*</span></label>
+                  <select class="select" id="state" name="state">${stateOpts}</select>
+                  <div class="error-text"></div>
+                </div>
+                <div class="field" data-field="phone">
+                  <label class="label" for="phone">${t("phone")} <span class="req">*</span></label>
+                  <input class="input" id="phone" name="phone" type="tel" placeholder="+1 (555) 000-0000">
+                  <div class="error-text"></div>
+                </div>
+              </div>
+              <div>
+                <div class="label" style="margin-bottom:2px">${t("contact_more_title")}</div>
+                <div class="hint" style="margin-top:0;margin-bottom:12px">${t("contact_more_hint")}</div>
+                <div class="contacts-grid">${contactFields()}</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel__title"><span class="step-num">2</span> ${t("step_payment")}</div>
+            <p class="hint" style="margin-bottom:var(--space-4)">${t("payment_crypto")}</p>
+            <div class="coin-grid" id="coinGrid">${coinCards()}</div>
+            <input type="hidden" name="coin" id="coinInput">
+            <div class="field" data-field="coin" style="margin-top:10px"><div class="error-text"></div></div>
+            <div class="pay-box" id="payBox"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel__title"><span class="step-num">3</span> ${t("step_confirm")}</div>
+            <div class="field" data-field="txhash">
+              <label class="label" for="txhash">${t("tx_hash")} <span class="req">*</span></label>
+              <input class="input" id="txhash" name="txhash" placeholder="${t("tx_ph")}">
+              <div class="hint">${t("tx_hint")}</div>
+              <div class="error-text"></div>
+            </div>
+            <button class="btn btn--primary btn--block btn--lg" type="submit" style="margin-top:var(--space-4)">
+              ${icon("check", 18)} ${t("place_order")} · ${money(total)}
+            </button>
+            <p class="hint" style="text-align:center;margin-top:10px">${icon("shield", 13)} ${t("pending_note")}</p>
+          </section>
+        </div>
+        ${summaryHTML()}
+      </div>
+    </form>`;
+
+  // coin selection
+  const grid = document.getElementById("coinGrid");
+  grid.addEventListener("click", (e) => {
+    const b = e.target.closest(".coin");
+    if (!b) return;
+    grid.querySelectorAll(".coin").forEach((c) => c.classList.remove("is-selected"));
+    b.classList.add("is-selected");
+    selectedCoin = SITE.wallets.find((w) => w.id === b.dataset.coin);
+    document.getElementById("coinInput").value = selectedCoin.id;
+    setError("coin", "");
+    renderPayBox(selectedCoin);
+  });
+
+  // live validation on blur (required fields only)
+  REQUIRED.forEach((name) => {
+    const el = document.getElementById(name);
+    el.addEventListener("blur", () => validateField(name, el.value));
+    el.addEventListener("input", () => {
+      const field = document.querySelector(`[data-field="${name}"]`);
+      if (field.classList.contains("field--invalid")) validateField(name, el.value);
+    });
+  });
+
+  // submit
+  document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    let ok = true;
+    REQUIRED.forEach((n) => { if (!validateField(n, f[n].value)) ok = false; });
+    if (!selectedCoin) { setError("coin", t("err_coin")); ok = false; }
+    if (!ok) {
+      toast(t("err_fix"), "err");
+      document.querySelector(".field--invalid")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    // collect any provided optional contacts
+    const contacts = {};
+    SITE.checkoutContacts.forEach((c) => {
+      const v = f[c.id]?.value.trim();
+      if (v) contacts[c.id] = v;
+    });
+
+    const stateName = US_STATES.find(([a]) => a === f.state.value)?.[1] || f.state.value;
+    const order = await createOrder({
+      items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, image: i.image })),
+      total,
+      currency: SITE.currency.code,
+      customer: {
+        address: f.address.value.trim(),
+        state: f.state.value,
+        stateName,
+        phone: f.phone.value.trim(),
+        contacts,
+        // kept for backward compatibility with earlier orders / views
+        facebook: contacts.facebook || "",
+      },
+      payment: {
+        coin: selectedCoin.id,
+        coinName: selectedCoin.name,
+        network: selectedCoin.network,
+        walletAddress: selectedCoin.address,
+        txHash: f.txhash.value.trim(),
+      },
+    });
+
+    Cart.clear();
+    toast(t("order_placed"));
+    location.href = `order.html?id=${order.id}`;
+  });
+}
+
+init();

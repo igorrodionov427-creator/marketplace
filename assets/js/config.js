@@ -1,0 +1,143 @@
+// =============================================================================
+//  SITE CONFIGURATION  —  EDIT EVERYTHING HERE, IN ONE PLACE
+// =============================================================================
+//
+//  1. MARKETPLACE NAME
+//     Change SITE.name below. It is injected automatically into the header,
+//     footer, <title>, and <meta> tags on every page. The placeholder
+//     "{{MARKETPLACE_NAME}}" is intentional — replace it with your brand.
+//
+//  2. CRYPTO WALLET ADDRESSES
+//     Replace the placeholder addresses in SITE.wallets with your real ones.
+//     These are shown to the buyer (with a QR code) at checkout.
+//
+//  3. ADMIN PASSWORD
+//     Change SITE.adminPassword. NOTE: this is a lightweight, client-side gate
+//     for a local/dev tool only — it is NOT real security.
+//
+// =============================================================================
+
+export const SITE = {
+  // ---- Branding -------------------------------------------------------------
+  name: "PEAKR",
+  tagline: "Curated goods. Private checkout. Crypto native.",
+  metaDescription:
+    "A premium marketplace with a curated catalog and fast, private crypto checkout.",
+
+  // ---- Currency shown next to prices ---------------------------------------
+  currency: { code: "USD", symbol: "$", locale: "en-US" },
+
+  // ---- Crypto payment options ----------------------------------------------
+  // `address` is displayed to the buyer and encoded into the QR code.
+  // `uriScheme` builds a wallet-openable payment URI for the QR (optional).
+  wallets: [
+    {
+      id: "BTC",
+      name: "Bitcoin",
+      symbol: "BTC",
+      network: "Bitcoin (BTC)",
+      address: "bc1qexampleplaceholderreplace0000000000000w0d8f2",
+      uriScheme: "bitcoin",
+      accent: "#F7931A",
+    },
+    {
+      id: "ETH",
+      name: "Ethereum",
+      symbol: "ETH",
+      network: "Ethereum (ERC-20)",
+      address: "0xExamplePlaceholderReplace00000000000000dEaD",
+      uriScheme: "ethereum",
+      accent: "#627EEA",
+    },
+    {
+      id: "USDT",
+      name: "Tether",
+      symbol: "USDT",
+      network: "Tether (TRC-20 / ERC-20)",
+      address: "TExamplePlaceholderReplace0000000000USDTaddr",
+      uriScheme: null, // plain-address QR
+      accent: "#26A17B",
+    },
+  ],
+
+  // ---- Admin ----------------------------------------------------------------
+  adminPassword: "Igor281210@",
+
+  // ---- Catalog categories (used by the admin product form + catalog filter) -
+  categories: [
+    "Apparel",
+    "Footwear",
+    "Accessories",
+    "Bags & Luggage",
+    "Watches & Jewelry",
+    "Electronics",
+    "Audio",
+    "Home & Living",
+    "Furniture",
+    "Kitchen & Dining",
+    "Beauty",
+    "Health & Wellness",
+    "Sports & Outdoors",
+    "Toys & Games",
+    "Books & Media",
+    "Music & Instruments",
+    "Art & Prints",
+    "Collectibles",
+    "Pet Supplies",
+    "Office & Stationery",
+    "Food & Drink",
+    "Automotive",
+    "Other",
+  ],
+
+  // ---- Optional contact methods shown at checkout (NOT required) ------------
+  // Only the phone number is required; everything here is optional.
+  // Names of apps are kept as-is; section titles/hints are translated.
+  checkoutContacts: [
+    { id: "email",     label: "Email",     type: "email", placeholder: "you@email.com",        icon: "mail" },
+    { id: "whatsapp",  label: "WhatsApp",  type: "tel",   placeholder: "+1 555 000 0000",      icon: "phone" },
+    { id: "telegram",  label: "Telegram",  type: "text",  placeholder: "@username",            icon: "send" },
+    { id: "instagram", label: "Instagram", type: "text",  placeholder: "@handle",              icon: "camera" },
+    { id: "facebook",  label: "Facebook",  type: "url",   placeholder: "facebook.com/you",     icon: "user" },
+    { id: "signal",    label: "Signal",    type: "tel",   placeholder: "+1 555 000 0000",      icon: "shield" },
+  ],
+
+  // ---- Support page contact channels (edit these) --------------------------
+  supportChannels: [
+    { id: "email",    name: "Email",        value: "support@peakr.example", href: "mailto:support@peakr.example", icon: "mail" },
+    { id: "telegram", name: "Telegram",     value: "@peakr_support",        href: "https://t.me/peakr_support",   icon: "send" },
+    { id: "whatsapp", name: "WhatsApp",     value: "+1 (555) 010-2030",     href: "https://wa.me/15550102030",    icon: "phone" },
+    { id: "phone",    name: "Phone (US/EU)", value: "+1 (555) 010-2030",    href: "tel:+15550102030",             icon: "phone" },
+  ],
+};
+
+// -----------------------------------------------------------------------------
+//  US states — used by the checkout "State" dropdown.
+// -----------------------------------------------------------------------------
+export const US_STATES = [
+  ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
+  ["CA", "California"], ["CO", "Colorado"], ["CT", "Connecticut"], ["DE", "Delaware"],
+  ["DC", "District of Columbia"], ["FL", "Florida"], ["GA", "Georgia"], ["HI", "Hawaii"],
+  ["ID", "Idaho"], ["IL", "Illinois"], ["IN", "Indiana"], ["IA", "Iowa"],
+  ["KS", "Kansas"], ["KY", "Kentucky"], ["LA", "Louisiana"], ["ME", "Maine"],
+  ["MD", "Maryland"], ["MA", "Massachusetts"], ["MI", "Michigan"], ["MN", "Minnesota"],
+  ["MS", "Mississippi"], ["MO", "Missouri"], ["MT", "Montana"], ["NE", "Nebraska"],
+  ["NV", "Nevada"], ["NH", "New Hampshire"], ["NJ", "New Jersey"], ["NM", "New Mexico"],
+  ["NY", "New York"], ["NC", "North Carolina"], ["ND", "North Dakota"], ["OH", "Ohio"],
+  ["OK", "Oklahoma"], ["OR", "Oregon"], ["PA", "Pennsylvania"], ["RI", "Rhode Island"],
+  ["SC", "South Carolina"], ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"],
+  ["UT", "Utah"], ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"],
+  ["WV", "West Virginia"], ["WI", "Wisconsin"], ["WY", "Wyoming"],
+];
+
+// -----------------------------------------------------------------------------
+//  Order status vocabulary (used by admin + confirmation page).
+// -----------------------------------------------------------------------------
+export const ORDER_STATUSES = [
+  "Pending payment",
+  "Payment received",
+  "Processing",
+  "Shipped",
+  "Completed",
+  "Cancelled",
+];
