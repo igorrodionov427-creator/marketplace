@@ -4,10 +4,11 @@
 import { SITE } from "./config.js?v=2";
 
 const DB_NAME = "marketplace_db";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_PRODUCTS = "products";
 const STORE_ORDERS = "orders";
 const STORE_TICKETS = "tickets";
+const STORE_CERTS = "certs";
 
 let _dbPromise = null;
 
@@ -43,6 +44,10 @@ function openDB() {
       if (!db.objectStoreNames.contains(STORE_TICKETS)) {
         const ts = db.createObjectStore(STORE_TICKETS, { keyPath: "id" });
         ts.createIndex("createdAt", "createdAt");
+      }
+      if (!db.objectStoreNames.contains(STORE_CERTS)) {
+        const cs = db.createObjectStore(STORE_CERTS, { keyPath: "id" });
+        cs.createIndex("createdAt", "createdAt");
       }
     };
     req.onblocked = () => {
@@ -209,6 +214,68 @@ export async function getTickets() {
 }
 export async function deleteTicket(id) {
   return tx(STORE_TICKETS, "readwrite", (os) => os.delete(id));
+}
+
+// ---- Certificates & lab analyses ------------------------------------------
+const PUBLISHED_CERTS_URL = "data/certificates.json";
+
+export async function getCerts() {
+  const list = await tx(STORE_CERTS, "readonly", (os) => reqP(os.getAll()));
+  return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+export async function saveCert(cRec) {
+  const now = Date.now();
+  const rec = {
+    id: cRec.id || uid(),
+    title: cRec.title?.trim() || "Untitled",
+    issuer: cRec.issuer?.trim() || "",
+    date: cRec.date || "",
+    category: cRec.category || "",
+    image: cRec.image || "",
+    createdAt: cRec.createdAt || now,
+    updatedAt: now,
+  };
+  await tx(STORE_CERTS, "readwrite", (os) => os.put(rec));
+  return rec;
+}
+export async function deleteCert(id) {
+  return tx(STORE_CERTS, "readwrite", (os) => os.delete(id));
+}
+export async function getPublishedCerts() {
+  try {
+    const res = await fetch(PUBLISHED_CERTS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+  } catch {}
+  return getCerts();
+}
+export async function ensureCertAdminSeed() {
+  const count = await tx(STORE_CERTS, "readonly", (os) => reqP(os.count()));
+  if (count > 0 || localStorage.getItem("mkt_certs_seeded")) return;
+  try {
+    const res = await fetch(PUBLISHED_CERTS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        const now = Date.now();
+        await tx(STORE_CERTS, "readwrite", (os) => data.forEach((c, i) => os.put({ ...c, id: c.id || uid(), createdAt: c.createdAt || now - i, updatedAt: now })));
+      }
+    }
+  } catch {}
+  localStorage.setItem("mkt_certs_seeded", "1");
+}
+export function exportCertsJSON(list) {
+  return JSON.stringify(list, null, 2);
+}
+export async function importCertsFromJSON(text) {
+  const data = JSON.parse(text);
+  if (!Array.isArray(data)) throw new Error("JSON must be an array of certificates");
+  const now = Date.now();
+  await tx(STORE_CERTS, "readwrite", (os) => os.clear());
+  await tx(STORE_CERTS, "readwrite", (os) => data.forEach((c, i) => os.put({ ...c, id: c.id || uid(), createdAt: c.createdAt || now - i, updatedAt: now })));
+  localStorage.setItem("mkt_certs_seeded", "1");
 }
 
 // =============================================================================

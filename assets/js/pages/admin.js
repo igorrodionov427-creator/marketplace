@@ -1,5 +1,5 @@
 import { SITE, ORDER_STATUSES } from "../config.js?v=2";
-import { getProducts, saveProduct, deleteProduct, getOrders, updateOrderStatus, deleteOrder, getTickets, deleteTicket, ensureAdminSeed, exportProductsJSON, importProductsFromJSON } from "../db.js?v=2";
+import { getProducts, saveProduct, deleteProduct, getOrders, updateOrderStatus, deleteOrder, getTickets, deleteTicket, ensureAdminSeed, exportProductsJSON, importProductsFromJSON, getCerts, saveCert, deleteCert, ensureCertAdminSeed, exportCertsJSON, importCertsFromJSON } from "../db.js?v=2";
 import { icon, money, esc, placeholder, initTheme, mountChrome, toast } from "../ui.js";
 
 initTheme();
@@ -87,6 +87,7 @@ function renderDashboard() {
         <div class="tabs" id="tabs">
           <button class="tab is-active" data-tab="products">Products</button>
           <button class="tab" data-tab="orders">Orders</button>
+          <button class="tab" data-tab="certs">Certificates</button>
           <button class="tab" data-tab="support">Support</button>
         </div>
         <button class="btn btn--ghost btn--sm" id="logout">Log out</button>
@@ -101,6 +102,7 @@ function renderDashboard() {
     document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("is-active", t === b));
     if (tab === "products") renderProducts();
     else if (tab === "orders") renderOrders();
+    else if (tab === "certs") renderCerts();
     else renderTickets();
   });
   document.getElementById("logout").addEventListener("click", () => {
@@ -430,6 +432,135 @@ async function renderTickets() {
     b.addEventListener("click", async () => {
       if (confirm("Delete this message?")) { await deleteTicket(b.dataset.id); toast("Message deleted"); renderTickets(); }
     }));
+}
+
+// ---------------------------------------------------------------------------
+//  CERTIFICATES TAB (lab reports / certificates of analysis)
+// ---------------------------------------------------------------------------
+async function renderCerts() {
+  const panel = document.getElementById("panel");
+  let certs;
+  try { await ensureCertAdminSeed(); certs = await getCerts(); }
+  catch (err) { panel.innerHTML = dbErrorHTML(err); return; }
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:var(--space-3)">
+      <p class="muted">${certs.length} certificate${certs.length === 1 ? "" : "s"}</p>
+      <div class="row-actions" style="flex-wrap:wrap">
+        <button class="btn btn--ghost btn--sm" id="certImportBtn">${icon("upload", 15)} Import</button>
+        <button class="btn btn--ghost btn--sm" id="certExportBtn">${icon("box", 15)} Export certificates.json</button>
+        <button class="btn btn--primary btn--sm" id="certNewBtn">${icon("plus", 16)} Add certificate</button>
+        <input type="file" id="certImportFile" accept="application/json,.json" hidden>
+      </div>
+    </div>
+    <div class="alert alert--info" style="margin-bottom:var(--space-4);font-size:.82rem">${icon("shield", 14)} <span>To publish to the live site: <b>Export certificates.json</b> → replace <code>data/certificates.json</code> in your repo → commit &amp; push.</span></div>
+    ${certs.length ? `
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th></th><th>Title</th><th>Issuer / lab</th><th>Date</th><th>Category</th><th></th></tr></thead>
+      <tbody>
+        ${certs.map((cc) => `<tr>
+          <td>${cc.image ? `<img class="thumb-xs" src="${cc.image}" alt="">` : `<div class="thumb-xs"></div>`}</td>
+          <td style="font-weight:600;max-width:280px">${esc(cc.title)}</td>
+          <td>${esc(cc.issuer || "—")}</td>
+          <td>${esc(cc.date || "—")}</td>
+          <td>${cc.category ? `<span class="badge">${esc(cc.category)}</span>` : ""}</td>
+          <td><div class="row-actions">
+            <button class="icon-btn cert-edit" data-id="${cc.id}" style="width:34px;height:34px" aria-label="Edit">${icon("edit", 15)}</button>
+            <button class="icon-btn cert-del" data-id="${cc.id}" style="width:34px;height:34px" aria-label="Delete">${icon("trash", 15)}</button>
+          </div></td>
+        </tr>`).join("")}
+      </tbody></table></div>`
+    : `<div class="empty">${icon("shield", 44)}<h3>No certificates yet</h3><p>Add lab reports and certificates of analysis your customers can view.</p></div>`}`;
+
+  document.getElementById("certNewBtn").addEventListener("click", () => openCertModal(null));
+  document.getElementById("certExportBtn").addEventListener("click", async () => {
+    const list = await getCerts();
+    const blob = new Blob([exportCertsJSON(list)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "certificates.json"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("certificates.json downloaded — commit it to publish");
+  });
+  document.getElementById("certImportBtn").addEventListener("click", () => document.getElementById("certImportFile").click());
+  document.getElementById("certImportFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    try { await importCertsFromJSON(await file.text()); toast("Certificates imported"); renderCerts(); }
+    catch (err) { toast("Import failed: " + err.message, "err"); }
+  });
+  panel.querySelectorAll(".cert-edit").forEach((b) => b.addEventListener("click", () => openCertModal(certs.find((c) => c.id === b.dataset.id))));
+  panel.querySelectorAll(".cert-del").forEach((b) => b.addEventListener("click", async () => {
+    if (confirm("Delete this certificate?")) { await deleteCert(b.dataset.id); toast("Certificate deleted"); renderCerts(); }
+  }));
+}
+
+function openCertModal(cert) {
+  const isEdit = !!cert;
+  let img = cert?.image || "";
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal__head">
+        <h2 style="font-family:var(--font-body);font-size:1.2rem;font-weight:600">${isEdit ? "Edit certificate" : "Add certificate"}</h2>
+        <button class="icon-btn" id="cmClose" aria-label="Close">${icon("close", 18)}</button>
+      </div>
+      <div class="modal__body">
+        <form id="certForm" class="form-grid">
+          <div class="field" data-field="ctitle">
+            <label class="label">Title <span class="req">*</span></label>
+            <input class="input" name="title" value="${esc(cert?.title || "")}" placeholder="e.g. Whey Isolate — Purity Report">
+            <div class="error-text"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label class="label">Issuer / lab</label><input class="input" name="issuer" value="${esc(cert?.issuer || "")}" placeholder="e.g. Eurofins"></div>
+            <div class="field"><label class="label">Date</label><input class="input" name="date" value="${esc(cert?.date || "")}" placeholder="e.g. Feb 2026"></div>
+          </div>
+          <div class="field">
+            <label class="label">Category</label>
+            <select class="select" name="category"><option value="">—</option>${SITE.categories.map((cat) => `<option ${cert?.category === cat ? "selected" : ""}>${esc(cat)}</option>`).join("")}</select>
+          </div>
+          <div class="field">
+            <label class="label">Document image</label>
+            <div class="uploader" id="certUploader">${icon("upload", 26)}<div style="margin-top:8px;font-weight:600">Click to upload a scan or photo</div><div class="hint">JPG / PNG (screenshot a PDF if needed)</div><input type="file" id="certFile" accept="image/*" hidden></div>
+            <div class="thumbs" id="certThumb"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" id="cmCancel">Cancel</button>
+        <button class="btn btn--primary" id="cmSave">${icon("check", 16)} ${isEdit ? "Save changes" : "Create"}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  const close = () => backdrop.remove();
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+  document.getElementById("cmClose").addEventListener("click", close);
+  document.getElementById("cmCancel").addEventListener("click", close);
+
+  const uploader = document.getElementById("certUploader");
+  const fileInput = document.getElementById("certFile");
+  const renderThumb = () => {
+    const wrap = document.getElementById("certThumb");
+    wrap.innerHTML = img ? `<div class="thumb" style="width:110px;height:140px"><img src="${img}" alt=""><button type="button" class="thumb__del" id="certDel">✕</button></div>` : "";
+    const d = document.getElementById("certDel");
+    if (d) d.addEventListener("click", () => { img = ""; renderThumb(); });
+  };
+  uploader.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try { img = await fileToResizedDataURL(f, 1400, 0.82); renderThumb(); }
+    catch { toast("Couldn’t read the image", "err"); }
+  });
+  renderThumb();
+
+  document.getElementById("cmSave").addEventListener("click", async () => {
+    const form = document.getElementById("certForm");
+    const tf = form.querySelector('[data-field="ctitle"]');
+    if (!form.title.value.trim()) { tf.classList.add("field--invalid"); tf.querySelector(".error-text").textContent = "Title is required."; return; }
+    await saveCert({ id: cert?.id, createdAt: cert?.createdAt, title: form.title.value, issuer: form.issuer.value, date: form.date.value, category: form.category.value, image: img });
+    toast(isEdit ? "Certificate updated" : "Certificate created");
+    close();
+    renderCerts();
+  });
 }
 
 // ---------------------------------------------------------------------------

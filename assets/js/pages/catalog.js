@@ -111,6 +111,8 @@ async function init() {
   document.getElementById("app").innerHTML = `
     <section class="hero">
       <div class="hero__bg">
+        <img class="photo" src="assets/img/bg/gym-hero.jpg" alt="" aria-hidden="true" loading="eager">
+        <div class="hero__scrim"></div>
         <span class="glow glow-1"></span><span class="glow glow-2"></span>
         <div class="grid"></div>
         <svg class="bolt" viewBox="0 0 220 640" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

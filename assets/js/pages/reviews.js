@@ -66,7 +66,7 @@ function init() {
   const x = c();
   document.getElementById("app").innerHTML = `
     <section class="hero" style="padding-block:var(--space-7) var(--space-6)">
-      <div class="hero__bg"><span class="glow glow-1"></span><span class="glow glow-2"></span><div class="grid"></div></div>
+      <div class="hero__bg"><img class="photo" src="assets/img/bg/athlete.jpg" alt="" aria-hidden="true" loading="eager"><div class="hero__scrim"></div><span class="glow glow-1"></span><span class="glow glow-2"></span><div class="grid"></div></div>
       <div class="reviews-hero reveal in">
         <div>
           <span class="eyebrow">${esc(SITE.name)} · ${esc(x.eyebrow)}</span>
