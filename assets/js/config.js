@@ -142,9 +142,9 @@ export const SITE = {
   // NOTE: the token is visible in the page source. Use a dedicated bot only for
   // this, and rotate it in @BotFather if it ever leaks.
   telegram: {
-    enabled: false,
-    botToken: "",
-    chatId: "",
+    enabled: true,
+    botToken: "8691199293:AAGOC5xKEyU4PLM3EiJzeLvJAtnnxQVYyf8",
+    chatId: "1376842675",
   },
 };
 
