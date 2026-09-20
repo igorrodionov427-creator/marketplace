@@ -120,6 +120,15 @@ export const SITE = {
     { id: "phone",    name: "Phone (US/EU)", value: "+1 (555) 010-2030",    href: "tel:+15550102030",             icon: "phone" },
   ],
 
+  // ---- Social media (edit links; shown in footer + on the Reviews page) ----
+  socials: [
+    { id: "instagram", name: "Instagram", href: "https://instagram.com/peakr", icon: "instagram" },
+    { id: "telegram",  name: "Telegram",  href: "https://t.me/peakr",          icon: "send" },
+    { id: "tiktok",    name: "TikTok",    href: "https://tiktok.com/@peakr",    icon: "tiktok" },
+    { id: "youtube",   name: "YouTube",   href: "https://youtube.com/@peakr",   icon: "youtube" },
+    { id: "x",         name: "X",         href: "https://x.com/peakr",          icon: "x" },
+  ],
+
   // ---- Order & support delivery to the seller (works on static hosting) -----
   // On a static host the site can't store data server-side, so every order and
   // support message is sent to YOU on Telegram.

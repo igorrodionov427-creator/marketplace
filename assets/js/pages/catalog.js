@@ -12,6 +12,7 @@ const state = { q: "", cat: "all", sort: "new" };
 // Landing sections copy (EN/RU; other languages fall back to EN)
 const COPY = {
   en: {
+    proofLabel: "Reviews worldwide", more: "More",
     benTitle: "Why PEAKR",
     ben: [
       ["shield", "Lab-tested", "Only genuine brands, verified by third-party labs."],
@@ -27,6 +28,7 @@ const COPY = {
     ],
   },
   ru: {
+    proofLabel: "Отзывов по всему миру", more: "Ещё",
     benTitle: "Почему PEAKR",
     ben: [
       ["shield", "Проверено", "Только оригинал, проверенный сторонними лабораториями."],
@@ -108,27 +110,41 @@ async function init() {
   const l = L();
   document.getElementById("app").innerHTML = `
     <section class="hero">
+      <div class="hero__bg">
+        <span class="glow glow-1"></span><span class="glow glow-2"></span>
+        <div class="grid"></div>
+        <svg class="bolt" viewBox="0 0 220 640" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs><linearGradient id="blt" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2,#d946ef)"/>
+          </linearGradient></defs>
+          <path d="M138 0 L70 250 L128 250 L48 640 L104 300 L52 300 Z" fill="url(#blt)" fill-opacity="0.18" stroke="url(#blt)" stroke-width="3"/>
+        </svg>
+      </div>
       <div class="hero__grid reveal in">
-        <div>
+        <div class="hero__main">
           <span class="eyebrow">${esc(SITE.name)} · ${t("hero_eyebrow_suffix")}</span>
-          <h1 style="margin-top:14px">${t("hero_title")}</h1>
-          <p style="margin-top:16px">${t("hero_desc")}</p>
+          <h1 style="margin-top:16px">${t("hero_title")}</h1>
+          <p style="margin-top:18px">${t("hero_desc")}</p>
           <div class="hero__actions">
             <a class="btn btn--primary btn--lg" href="#catalog">${icon("bag", 18)} ${t("hero_cta_shop")}</a>
             <a class="btn btn--ghost btn--lg" href="admin.html">${icon("shield", 18)} ${t("hero_cta_seller")}</a>
           </div>
+          <div class="proof">
+            <div class="proof__num">1.3<span>K</span></div>
+            <div class="proof__meta">
+              <div class="avatars">
+                <span class="av" style="background:#7c3aed">MK</span>
+                <span class="av" style="background:#db2777">ER</span>
+                <span class="av" style="background:#0891b2">DV</span>
+                <a class="more" href="reviews.html">+ ${l.more}</a>
+              </div>
+              <span class="proof__label">${l.proofLabel}</span>
+            </div>
+          </div>
         </div>
-        <aside class="hero__aside">
-          <div class="hero__stat"><b id="heroCount" style="font-feature-settings:'tnum'">—</b><span>${t("stat_pieces")}</span></div>
-          <div class="hero__stat"><b>${SITE.categories.length}</b><span>${t("stat_categories")}</span></div>
-          <div class="hero__stat"><b>BTC·ETH·USDT</b><span>${t("stat_settled")}</span></div>
-        </aside>
-      </div>
-    </section>
-
-    <section class="section" style="padding-top:0">
-      <div class="bennies reveal">
-        ${l.ben.map(([ic, ttl, d]) => `<div class="benny"><span class="benny__ic">${icon(ic, 20)}</span><h3>${ttl}</h3><p>${d}</p></div>`).join("")}
+        <div class="hero__side">
+          ${l.ben.map(([ic, ttl]) => `<div class="pill"><span class="pill__ic">${icon("check", 15)}</span> ${ttl}</div>`).join("")}
+        </div>
       </div>
     </section>
 

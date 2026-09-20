@@ -37,6 +37,10 @@ export const icon = (name, size = 20) => {
     chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
     headset: '<path d="M3 14v-3a9 9 0 0 1 18 0v3"/><path d="M21 16a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2ZM3 16a2 2 0 0 0 2 2h1v-6H5a2 2 0 0 0-2 2Z"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    instagram: '<rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2"/>',
+    tiktok: '<path d="M9 12.5a3.5 3.5 0 1 0 3.5 3.5V4c.8 2 2.3 3.2 4.5 3.4"/>',
+    youtube: '<rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 8.5l6 3.5-6 3.5z"/>',
+    x: '<path d="M4 3l7.2 9.3L4.4 21H7l5.2-6 4.6 6H21l-7.5-9.7L20 3h-2.6l-4.6 5.4L8.7 3z"/>',
   }[name] || "";
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 };
@@ -92,6 +96,7 @@ export function toast(msg, type = "ok") {
 function navItems(active) {
   const items = [
     ["index.html", t("nav_catalog")],
+    ["reviews.html", t("nav_reviews")],
     ["support.html", t("nav_support")],
     ["cart.html", t("nav_cart")],
     ["admin.html", t("nav_admin")],
@@ -161,11 +166,15 @@ export function mountChrome(activePage = "index.html") {
         <div class="brand" style="font-size:1.25rem"><span class="brand__mark" style="width:26px;height:26px;font-size:.8rem">${esc(SITE.name.slice(0, 1))}</span> ${esc(SITE.name)}</div>
         <small>${esc(t("tagline"))}</small>
       </div>
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div style="display:flex;gap:18px;flex-wrap:wrap">
         <a class="navlink" href="index.html">${t("nav_catalog")}</a>
+        <a class="navlink" href="reviews.html">${t("nav_reviews")}</a>
         <a class="navlink" href="support.html">${t("nav_support")}</a>
         <a class="navlink" href="cart.html">${t("nav_cart")}</a>
         <a class="navlink" href="admin.html">${t("nav_admin")}</a>
+      </div>
+      <div class="socials">
+        ${(SITE.socials || []).map((sc) => `<a class="social" href="${esc(sc.href)}" target="_blank" rel="noopener" aria-label="${esc(sc.name)}">${icon(sc.icon, 18)}</a>`).join("")}
       </div>
       <small>© ${year} ${esc(SITE.name)}.</small>
     </div>`;
