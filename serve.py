@@ -4,6 +4,7 @@ immediately (Python's default http.server caches aggressively in the browser).
 
     py serve.py [port]        # default port 5173
 """
+import os
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -14,6 +15,22 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
         super().end_headers()
+
+    def send_error(self, code, message=None, explain=None):
+        # serve the branded 404.html (like GitHub Pages) for missing paths
+        if code == 404:
+            path = os.path.join(os.getcwd(), "404.html")
+            if os.path.isfile(path):
+                with open(path, "rb") as f:
+                    body = f.read()
+                self.send_response(404)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                if self.command != "HEAD":
+                    self.wfile.write(body)
+                return
+        super().send_error(code, message, explain)
 
     def log_message(self, *args):  # keep the console quiet
         pass

@@ -79,8 +79,10 @@ async function init() {
         <section class="panel">
           <div class="panel__title">${icon("truck", 18)} ${t("delivery")}</div>
           <dl class="kv">
+            ${o.customer.countryName ? `<dt>${t("country")}</dt><dd>${esc(o.customer.countryName)}</dd>` : ""}
+            ${o.customer.stateName ? `<dt>${t("state")}</dt><dd>${esc(o.customer.stateName)}${o.customer.state ? ` (${esc(o.customer.state)})` : ""}</dd>` : ""}
+            ${o.customer.city ? `<dt>${t("city")}</dt><dd>${esc(o.customer.city)}${o.customer.zip ? `, ${esc(o.customer.zip)}` : ""}</dd>` : ""}
             <dt>${t("delivery_address")}</dt><dd>${esc(o.customer.address)}</dd>
-            <dt>${t("state")}</dt><dd>${esc(o.customer.stateName)} (${esc(o.customer.state)})</dd>
             <dt>${t("phone")}</dt><dd>${esc(o.customer.phone)}</dd>
             ${contactsRows(o.customer)}
           </dl>

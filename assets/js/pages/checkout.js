@@ -1,4 +1,4 @@
-import { SITE, US_STATES } from "../config.js?v=2";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=2";
 import { Cart } from "../store.js";
 import { createOrder } from "../db.js?v=2";
 import { icon, money, esc, initTheme, mountChrome, toast, copyText } from "../ui.js";
@@ -79,9 +79,11 @@ function renderPayBox(w) {
   });
 }
 
-// ---- validation (only these are required) ----------------------------------
+// ---- validation ------------------------------------------------------------
 const rules = {
-  address: (v) => (v.trim().length >= 6 ? "" : t("err_address")),
+  country: (v) => (v ? "" : t("select_country")),
+  city: (v) => (v.trim().length >= 2 ? "" : `${t("city")}: ${t("required_word")}`),
+  address: (v) => (v.trim().length >= 4 ? "" : t("err_address")),
   state: (v) => (v ? "" : t("err_state")),
   phone: (v) => {
     const digits = v.replace(/\D/g, "");
@@ -94,7 +96,8 @@ const rules = {
     return /^(0x)?[a-zA-Z0-9]{8,}$/.test(val) ? "" : t("err_txhash");
   },
 };
-const REQUIRED = ["address", "state", "phone", "txhash"];
+// state is required only when the country is the United States
+const REQUIRED = ["country", "city", "address", "phone", "txhash"];
 
 function setError(name, msg) {
   const field = document.querySelector(`[data-field="${name}"]`);
@@ -119,6 +122,8 @@ function init() {
     return;
   }
 
+  const countryOpts = `<option value="">${t("select_country")}</option>` +
+    COUNTRIES.map(([code, name]) => `<option value="${code}">${esc(name)}</option>`).join("");
   const stateOpts = `<option value="">${t("select_state")}</option>` +
     US_STATES.map(([abbr, name]) => `<option value="${abbr}">${esc(name)}</option>`).join("");
 
@@ -131,22 +136,36 @@ function init() {
           <section class="panel">
             <div class="panel__title"><span class="step-num">1</span> ${t("step_delivery")}</div>
             <div class="form-grid">
-              <div class="field" data-field="address">
-                <label class="label" for="address">${t("delivery_address")} <span class="req">*</span></label>
-                <textarea class="textarea" id="address" name="address" placeholder="${t("addr_ph")}"></textarea>
+              <div class="field" data-field="country">
+                <label class="label" for="country">${t("country")} <span class="req">*</span></label>
+                <select class="select" id="country" name="country">${countryOpts}</select>
+                <div class="error-text"></div>
+              </div>
+              <div class="field" data-field="state" id="stateField" hidden>
+                <label class="label" for="state">${t("state")} <span class="req">*</span></label>
+                <select class="select" id="state" name="state">${stateOpts}</select>
                 <div class="error-text"></div>
               </div>
               <div class="form-row">
-                <div class="field" data-field="state">
-                  <label class="label" for="state">${t("state")} <span class="req">*</span></label>
-                  <select class="select" id="state" name="state">${stateOpts}</select>
+                <div class="field" data-field="city">
+                  <label class="label" for="city">${t("city")} <span class="req">*</span></label>
+                  <input class="input" id="city" name="city" autocomplete="address-level2">
                   <div class="error-text"></div>
                 </div>
-                <div class="field" data-field="phone">
-                  <label class="label" for="phone">${t("phone")} <span class="req">*</span></label>
-                  <input class="input" id="phone" name="phone" type="tel" placeholder="+1 (555) 000-0000">
-                  <div class="error-text"></div>
+                <div class="field" data-field="zip">
+                  <label class="label" for="zip">${t("zip")}</label>
+                  <input class="input" id="zip" name="zip" autocomplete="postal-code">
                 </div>
+              </div>
+              <div class="field" data-field="address">
+                <label class="label" for="address">${t("delivery_address")} <span class="req">*</span></label>
+                <input class="input" id="address" name="address" placeholder="${t("addr_ph")}" autocomplete="address-line1">
+                <div class="error-text"></div>
+              </div>
+              <div class="field" data-field="phone">
+                <label class="label" for="phone">${t("phone")} <span class="req">*</span></label>
+                <input class="input" id="phone" name="phone" type="tel" placeholder="+1 (555) 000-0000">
+                <div class="error-text"></div>
               </div>
               <div>
                 <div class="label" style="margin-bottom:2px">${t("contact_more_title")}</div>
@@ -196,13 +215,24 @@ function init() {
     renderPayBox(selectedCoin);
   });
 
-  // live validation on blur (required fields only)
-  REQUIRED.forEach((name) => {
+  // show the US state dropdown only for the United States
+  const countrySel = document.getElementById("country");
+  const stateField = document.getElementById("stateField");
+  countrySel.addEventListener("change", () => {
+    const isUS = countrySel.value === "US";
+    stateField.hidden = !isUS;
+    if (!isUS) setError("state", "");
+    setError("country", "");
+  });
+
+  // live validation on blur
+  ["country", "city", "address", "phone", "txhash", "state"].forEach((name) => {
     const el = document.getElementById(name);
+    if (!el) return;
     el.addEventListener("blur", () => validateField(name, el.value));
     el.addEventListener("input", () => {
       const field = document.querySelector(`[data-field="${name}"]`);
-      if (field.classList.contains("field--invalid")) validateField(name, el.value);
+      if (field && field.classList.contains("field--invalid")) validateField(name, el.value);
     });
   });
 
@@ -210,8 +240,10 @@ function init() {
   document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target;
+    const isUS = f.country.value === "US";
+    const required = isUS ? [...REQUIRED, "state"] : REQUIRED;
     let ok = true;
-    REQUIRED.forEach((n) => { if (!validateField(n, f[n].value)) ok = false; });
+    required.forEach((n) => { if (!validateField(n, f[n].value)) ok = false; });
     if (!selectedCoin) { setError("coin", t("err_coin")); ok = false; }
     if (!ok) {
       toast(t("err_fix"), "err");
@@ -226,15 +258,21 @@ function init() {
       if (v) contacts[c.id] = v;
     });
 
-    const stateName = US_STATES.find(([a]) => a === f.state.value)?.[1] || f.state.value;
+    const countryName = COUNTRIES.find(([code]) => code === f.country.value)?.[1] || f.country.value;
+    const stateVal = isUS ? f.state.value : "";
+    const stateName = isUS ? (US_STATES.find(([a]) => a === stateVal)?.[1] || stateVal) : "";
     const order = await createOrder({
       items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, image: i.image })),
       total,
       currency: SITE.currency.code,
       customer: {
-        address: f.address.value.trim(),
-        state: f.state.value,
+        country: f.country.value,
+        countryName,
+        state: stateVal,
         stateName,
+        city: f.city.value.trim(),
+        zip: f.zip.value.trim(),
+        address: f.address.value.trim(),
         phone: f.phone.value.trim(),
         contacts,
         // kept for backward compatibility with earlier orders / views

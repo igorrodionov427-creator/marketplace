@@ -36,7 +36,7 @@ export const SITE = {
       name: "Bitcoin",
       symbol: "BTC",
       network: "Bitcoin (BTC)",
-      address: "bc1qexampleplaceholderreplace0000000000000w0d8f2",
+      address: "bc1qvw4l9vwlfef9jq67eqexgwvxqawzs52xhcpfu8",
       uriScheme: "bitcoin",
       accent: "#F7931A",
     },
@@ -45,7 +45,7 @@ export const SITE = {
       name: "Ethereum",
       symbol: "ETH",
       network: "Ethereum (ERC-20)",
-      address: "0xExamplePlaceholderReplace00000000000000dEaD",
+      address: "0xf38f6A9057efb3D2be5eA956b597e6A7941E4DE9",
       uriScheme: "ethereum",
       accent: "#627EEA",
     },
@@ -53,8 +53,8 @@ export const SITE = {
       id: "USDT",
       name: "Tether",
       symbol: "USDT",
-      network: "Tether (TRC-20 / ERC-20)",
-      address: "TExamplePlaceholderReplace0000000000USDTaddr",
+      network: "Tether (TRC-20 · TRON)",
+      address: "TDSLPsDGvY5LTa2bUDeEBPGYbQA6p3Jfor",
       uriScheme: null, // plain-address QR
       accent: "#26A17B",
     },
@@ -128,6 +128,27 @@ export const US_STATES = [
   ["SC", "South Carolina"], ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"],
   ["UT", "Utah"], ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"],
   ["WV", "West Virginia"], ["WI", "Wisconsin"], ["WY", "Wyoming"],
+];
+
+// -----------------------------------------------------------------------------
+//  Delivery countries (edit freely). Russia is intentionally excluded.
+//  If a country's code is "US", the checkout also shows the US state dropdown.
+// -----------------------------------------------------------------------------
+export const COUNTRIES = [
+  ["US", "United States"],
+  ["CA", "Canada"],
+  ["GB", "United Kingdom"],
+  ["IE", "Ireland"],
+  ["DE", "Germany"],
+  ["AT", "Austria"],
+  ["CH", "Switzerland"],
+  ["FR", "France"],
+  ["BE", "Belgium"],
+  ["NL", "Netherlands"],
+  ["ES", "Spain"],
+  ["PT", "Portugal"],
+  ["IT", "Italy"],
+  ["PL", "Poland"],
 ];
 
 // -----------------------------------------------------------------------------

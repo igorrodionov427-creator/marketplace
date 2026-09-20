@@ -341,7 +341,7 @@ async function renderOrders() {
     <div class="table-wrap">
       <table class="data">
         <thead><tr>
-          <th>Order</th><th>Items</th><th>Total</th><th>Address</th><th>State</th>
+          <th>Order</th><th>Items</th><th>Total</th><th>Address</th><th>Country</th>
           <th>Phone</th><th>Contacts</th><th>Coin</th><th>TX hash</th><th>Status</th><th></th>
         </tr></thead>
         <tbody>
@@ -350,8 +350,8 @@ async function renderOrders() {
               <td><b>#${o.id.slice(0, 6).toUpperCase()}</b><br><small class="muted">${esc(new Date(o.createdAt).toLocaleDateString())}</small></td>
               <td style="max-width:200px">${o.items.map((i) => `${esc(i.name)} ×${i.qty}`).join("<br>")}</td>
               <td><b>${money(o.total)}</b></td>
-              <td style="max-width:180px;white-space:pre-wrap">${esc(o.customer.address)}</td>
-              <td>${esc(o.customer.state)}</td>
+              <td style="max-width:180px;white-space:pre-wrap">${esc([o.customer.address, o.customer.city, o.customer.zip].filter(Boolean).join(", "))}</td>
+              <td>${esc(o.customer.countryName || o.customer.country || "")}${o.customer.state ? " / " + esc(o.customer.state) : ""}</td>
               <td>${esc(o.customer.phone)}</td>
               <td style="max-width:170px;font-size:.78rem">${contactsCell(o.customer)}</td>
               <td><span class="badge">${esc(o.payment.coin)}</span></td>

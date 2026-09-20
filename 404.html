@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9f7">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23100d0b'/><text x='50%25' y='55%25' font-size='20' font-family='Georgia' font-weight='700' text-anchor='middle' dominant-baseline='central' fill='%23faf9f7'>P</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,500&display=swap">
+  <title>PEAKR</title>
+  <style>
+    :root{
+      --bg:#faf9f7; --fg:#100d0b; --muted:#565049; --accent:#79501f; --accent-ink:#8a5a2b;
+      --surface:#fff; --border:#e6e2da; --primary:#100d0b; --primary-fg:#faf9f7;
+      --font-display:'Playfair Display',Georgia,serif; --font-body:'Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#0c0a09; --fg:#f7f4ef; --muted:#a8a096; --accent:#d2a972; --accent-ink:#e0bc8c;
+      --surface:#16130f; --border:#2c2721; --primary:#f7f4ef; --primary-fg:#100d0b;
+    }}
+    :root[data-theme="dark"]{
+      --bg:#0c0a09; --fg:#f7f4ef; --muted:#a8a096; --accent:#d2a972; --accent-ink:#e0bc8c;
+      --surface:#16130f; --border:#2c2721; --primary:#f7f4ef; --primary-fg:#100d0b;
+    }
+    *{box-sizing:border-box;margin:0}
+    body{background:var(--bg);color:var(--fg);font-family:var(--font-body);min-height:100vh;
+      display:grid;place-items:center;padding:24px;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:radial-gradient(55% 45% at 82% -5%,rgba(138,90,43,.10),transparent 70%)}
+    .wrap{text-align:center;max-width:520px}
+    .mark{width:44px;height:44px;border-radius:11px;background:var(--primary);color:var(--primary-fg);
+      display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:1.4rem;margin:0 auto 28px}
+    .code{font-family:var(--font-display);font-size:clamp(5rem,22vw,9rem);font-weight:600;line-height:1;letter-spacing:-.03em}
+    .code em{font-style:italic;color:var(--accent-ink)}
+    h1{font-family:var(--font-display);font-weight:600;font-size:1.7rem;margin:10px 0 8px}
+    p{color:var(--muted);font-size:1.02rem;line-height:1.6;margin-bottom:28px}
+    .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:999px;
+      background:var(--primary);color:var(--primary-fg);text-decoration:none;font-weight:600;font-size:.95rem;
+      box-shadow:0 6px 20px rgba(16,13,11,.12);transition:transform .12s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .eyebrow{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.2em;font-size:.72rem;color:var(--accent-ink);margin-bottom:6px}
+  </style>
+  <script>(function(){try{var s=localStorage.getItem('mkt_theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mark">P</div>
+    <div class="eyebrow" id="eyebrow">Page not found</div>
+    <div class="code">4<em>0</em>4</div>
+    <h1 id="title">This page doesn’t exist</h1>
+    <p id="desc">The link may be broken or the page may have been moved. Let’s get you back to the collection.</p>
+    <a class="btn" id="homeBtn" href="/">← Back to store</a>
+  </div>
+  <script>
+    // Localised copy (matches the site's language picker)
+    (function(){
+      var L={
+        en:["Page not found","This page doesn’t exist","The link may be broken or the page may have been moved. Let’s get you back to the collection.","Back to store"],
+        ru:["Страница не найдена","Такой страницы нет","Ссылка устарела или страница была перемещена. Вернёмся в каталог.","Вернуться в магазин"],
+        de:["Seite nicht gefunden","Diese Seite existiert nicht","Der Link ist evtl. defekt oder die Seite wurde verschoben. Zurück zur Kollektion.","Zurück zum Shop"],
+        fr:["Page introuvable","Cette page n’existe pas","Le lien est peut-être rompu ou la page a été déplacée. Retournons à la boutique.","Retour à la boutique"],
+        es:["Página no encontrada","Esta página no existe","El enlace puede estar roto o la página se ha movido. Volvamos a la tienda.","Volver a la tienda"],
+        it:["Pagina non trovata","Questa pagina non esiste","Il link potrebbe essere rotto o la pagina spostata. Torniamo al negozio.","Torna al negozio"],
+        pl:["Nie znaleziono strony","Ta strona nie istnieje","Link może być nieaktualny lub strona została przeniesiona. Wróćmy do sklepu.","Powrót do sklepu"]
+      };
+      var lang="en";
+      try{var s=localStorage.getItem('mkt_lang');if(s&&L[s])lang=s;}catch(e){}
+      var t=L[lang]||L.en;
+      document.documentElement.lang=lang;
+      document.getElementById('eyebrow').textContent=t[0];
+      document.getElementById('title').textContent=t[1];
+      document.getElementById('desc').textContent=t[2];
+      var btn=document.getElementById('homeBtn');
+      btn.textContent="← "+t[3];
+      // compute site base so "home" works on GitHub project pages, user pages, or locally
+      var parts=location.pathname.split('/').filter(Boolean);
+      var base=parts.length>1?('/'+parts[0]+'/'):'/';
+      btn.setAttribute('href',base);
+    })();
+  </script>
+</body>
+</html>
