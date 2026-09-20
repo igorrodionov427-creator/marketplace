@@ -2,12 +2,47 @@ import { SITE } from "../config.js?v=2";
 import { getPublishedProducts } from "../db.js?v=2";
 import { Cart } from "../store.js";
 import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards } from "../ui.js";
-import { t } from "../i18n.js";
+import { t, getLang } from "../i18n.js";
 
 initTheme();
 
 let ALL = [];
 const state = { q: "", cat: "all", sort: "new" };
+
+// Landing sections copy (EN/RU; other languages fall back to EN)
+const COPY = {
+  en: {
+    benTitle: "Why PEAKR",
+    ben: [
+      ["shield", "Lab-tested", "Only genuine brands, verified by third-party labs."],
+      ["truck", "Fast shipping", "Discreet worldwide delivery with tracking."],
+      ["check", "Crypto checkout", "Pay in BTC, ETH or USDT — private, no account."],
+      ["headset", "Real support", "Questions? We reply within hours."],
+    ],
+    revTitle: "What athletes say",
+    rev: [
+      ["The pre-workout is insane, energy for the whole session. Shipping was quick too.", "Max K. · powerlifter"],
+      ["Legit gear, honest doses. My go-to for whey and creatine now.", "Elena R. · CrossFit"],
+      ["Paid in USDT, order tracked, arrived sealed. Ordering again.", "Dmitri V. · bodybuilder"],
+    ],
+  },
+  ru: {
+    benTitle: "Почему PEAKR",
+    ben: [
+      ["shield", "Проверено", "Только оригинал, проверенный сторонними лабораториями."],
+      ["truck", "Быстрая доставка", "Аккуратная доставка по миру с трек-номером."],
+      ["check", "Оплата криптой", "BTC, ETH или USDT — приватно, без аккаунта."],
+      ["headset", "Поддержка", "Есть вопрос? Отвечаем в течение часов."],
+    ],
+    revTitle: "Отзывы атлетов",
+    rev: [
+      ["Предтрен — огонь, энергии на всю тренировку. Доставили быстро.", "Максим К. · пауэрлифтинг"],
+      ["Оригинал, честные дозировки. Беру протеин и креатин только тут.", "Елена Р. · кроссфит"],
+      ["Оплатил в USDT, заказ отслеживался, пришёл запечатанным. Беру ещё.", "Дмитрий В. · бодибилдинг"],
+    ],
+  },
+};
+const L = () => COPY[getLang()] || COPY.en;
 
 function stockBadge(p) {
   if (p.stock <= 0) return `<span class="badge badge--out">${t("sold_out")}</span>`;
@@ -70,6 +105,7 @@ async function init() {
   mountChrome("index.html");
 
   const cats = ["all", ...SITE.categories];
+  const l = L();
   document.getElementById("app").innerHTML = `
     <section class="hero">
       <div class="hero__grid reveal in">
@@ -90,6 +126,12 @@ async function init() {
       </div>
     </section>
 
+    <section class="section" style="padding-top:0">
+      <div class="bennies reveal">
+        ${l.ben.map(([ic, ttl, d]) => `<div class="benny"><span class="benny__ic">${icon(ic, 20)}</span><h3>${ttl}</h3><p>${d}</p></div>`).join("")}
+      </div>
+    </section>
+
     <section id="catalog" class="section" style="padding-top:0">
       <div class="toolbar">
         <div class="field search">${icon("search", 18)}<input class="input" id="q" type="search" placeholder="${t("search_ph")}" aria-label="${t("search_ph")}"></div>
@@ -104,6 +146,13 @@ async function init() {
         <span class="muted" id="count" style="margin-left:auto;font-family:var(--font-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em"></span>
       </div>
       <div id="grid" class="grid-products" aria-busy="true">${skeletonCards(8)}</div>
+    </section>
+
+    <section class="section reveal">
+      <div class="section-head"><h2>${l.revTitle}</h2><span class="rule"></span></div>
+      <div class="reviews">
+        ${l.rev.map(([txt, name]) => `<div class="review"><div class="review__stars">★★★★★</div><p class="review__text">${txt}</p><div class="review__name">${name}</div></div>`).join("")}
+      </div>
     </section>`;
 
   document.getElementById("q").addEventListener("input", (e) => { state.q = e.target.value; apply(); });
