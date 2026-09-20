@@ -24,7 +24,7 @@ function card(cert) {
     ? `<img src="${esc(cert.image)}" alt="${esc(cert.title)}" loading="lazy">`
     : `<div class="img-ph">${icon("shield", 34)}</div>`;
   return `
-    <button class="cert reveal" data-img="${esc(cert.image || "")}" data-title="${esc(cert.title)}">
+    <button class="cert" data-img="${esc(cert.image || "")}" data-title="${esc(cert.title)}">
       <span class="cert__img">${img}<span class="cert__pass">${icon("check", 11)} passed</span></span>
       <span class="cert__body">
         <span class="cert__title">${esc(cert.title)}</span>

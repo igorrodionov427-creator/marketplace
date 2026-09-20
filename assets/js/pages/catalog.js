@@ -1,7 +1,7 @@
 import { SITE } from "../config.js?v=2";
 import { getPublishedProducts } from "../db.js?v=2";
 import { Cart } from "../store.js";
-import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards } from "../ui.js";
+import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards, flyToCart } from "../ui.js";
 import { t, getLang } from "../i18n.js";
 
 initTheme();
@@ -58,7 +58,7 @@ function card(p) {
     : placeholder();
   const out = p.stock <= 0;
   return `
-  <article class="card reveal" data-id="${p.id}">
+  <article class="card" data-id="${p.id}">
     <a class="card__media" href="product.html?id=${p.id}" aria-label="${esc(p.name)}">
       ${img}
       ${stockBadge(p) ? `<span style="position:absolute;top:12px;left:12px">${stockBadge(p)}</span>` : ""}
@@ -183,6 +183,8 @@ async function init() {
     e.preventDefault();
     const p = ALL.find((x) => x.id === btn.dataset.id);
     if (!p || p.stock <= 0) return;
+    const src = btn.closest(".card")?.querySelector(".card__media img");
+    if (src && p.images?.[0]) flyToCart(src, p.images[0]);
     Cart.add({ id: p.id, name: p.name, price: p.price, image: p.images?.[0] || "", stock: p.stock });
     toast(t("added_toast", { name: p.name }));
   });

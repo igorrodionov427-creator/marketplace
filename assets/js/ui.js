@@ -144,11 +144,11 @@ export function mountChrome(activePage = "index.html") {
         <span class="brand__mark">${esc(SITE.name.replace(/[^A-Za-zА-Яа-я0-9]/g, "").slice(0, 1) || "M")}</span>
         <span class="brand__name">${esc(SITE.name)}</span>
       </a>
-      <nav class="site-nav" id="siteNav">${navItems(activePage)}</nav>
+      <nav class="site-nav" id="siteNav">${navItems(activePage)}<span class="nav-underline" id="navUnderline"></span></nav>
       <div class="header-tools" style="display:flex;gap:8px;align-items:center;margin-left:auto">
         ${langSelect()}
         <button class="icon-btn" id="themeBtn" aria-label="${t("lang_label")}"><span data-theme-icon>${icon(isLight ? "moon" : "sun")}</span></button>
-        <a class="icon-btn" href="cart.html" aria-label="${t("nav_cart")}">
+        <a class="icon-btn" href="cart.html" id="cartLink" aria-label="${t("nav_cart")}">
           ${icon("cart")}
           <span class="cart-count" id="cartCount" hidden>0</span>
         </a>
@@ -192,6 +192,28 @@ export function mountChrome(activePage = "index.html") {
     const open = nav.classList.toggle("is-open");
     navToggle.setAttribute("aria-expanded", String(open));
   });
+
+  // sliding nav active indicator — one physical object that moves & springs
+  const underline = document.getElementById("navUnderline");
+  const activeLink = nav.querySelector(".navlink.is-active");
+  const isHorizontal = () => window.matchMedia("(min-width: 721px)").matches;
+  const moveUnderline = (target) => {
+    if (!underline) return;
+    if (!target || !isHorizontal()) { underline.style.opacity = "0"; return; }
+    const nr = nav.getBoundingClientRect();
+    const tr = target.getBoundingClientRect();
+    underline.style.width = `${tr.width}px`;
+    underline.style.transform = `translateX(${tr.left - nr.left}px)`;
+    underline.style.opacity = "1";
+  };
+  const resetUnderline = () => moveUnderline(activeLink);
+  nav.querySelectorAll(".navlink").forEach((a) => a.addEventListener("mouseenter", () => moveUnderline(a)));
+  nav.addEventListener("mouseleave", resetUnderline);
+  requestAnimationFrame(resetUnderline);
+  setTimeout(resetUnderline, 300);
+  window.addEventListener("load", resetUnderline);
+  window.addEventListener("resize", resetUnderline);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(resetUnderline);
 
   // cart badge (live)
   const badge = document.getElementById("cartCount");
@@ -241,3 +263,35 @@ export function copyText(text) {
 }
 
 export const qs = (k) => new URLSearchParams(location.search).get(k);
+
+// ---- fly-to-cart: physical feedback when adding a product ------------------
+export function flyToCart(sourceEl, imgSrc) {
+  const cart = document.getElementById("cartLink");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !cart || !sourceEl || !imgSrc) return; // counter still springs via cart subscribe
+
+  const s = sourceEl.getBoundingClientRect();
+  const c = cart.getBoundingClientRect();
+  if (!s.width || !c.width) return;
+  const size = Math.min(96, Math.max(52, s.width * 0.5));
+  const clone = document.createElement("img");
+  clone.src = imgSrc;
+  clone.className = "fly-clone";
+  clone.style.width = clone.style.height = `${size}px`;
+  clone.style.left = `${s.left + s.width / 2 - size / 2}px`;
+  clone.style.top = `${s.top + s.height / 2 - size / 2}px`;
+  document.body.appendChild(clone);
+
+  const dx = c.left + c.width / 2 - (s.left + s.width / 2);
+  const dy = c.top + c.height / 2 - (s.top + s.height / 2);
+  const anim = clone.animate(
+    [
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 46}px) scale(.7)`, opacity: 1, offset: 0.6 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.16)`, opacity: 0.25 },
+    ],
+    { duration: 640, easing: "cubic-bezier(.5,.05,.85,.5)" }
+  );
+  anim.onfinish = () => clone.remove();
+  anim.oncancel = () => clone.remove();
+}

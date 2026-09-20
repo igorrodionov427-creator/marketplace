@@ -49,7 +49,7 @@ function reviewCard(r, i) {
   const [name, tag, rating, text] = r;
   const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
   return `
-    <div class="review reveal">
+    <div class="review">
       <div class="review__head">
         <span class="review__av" style="background:${AV[i % AV.length]}">${esc(initials(name))}</span>
         <span class="review__who"><b>${esc(name)}</b><span class="review__name" style="margin:0">${esc(tag)}</span></span>

@@ -1,6 +1,6 @@
 import { getPublishedProduct, getPublishedProducts } from "../db.js?v=2";
 import { Cart } from "../store.js";
-import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, qs } from "../ui.js";
+import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, qs, flyToCart } from "../ui.js";
 import { t } from "../i18n.js";
 
 initTheme();
@@ -123,6 +123,8 @@ async function init() {
   document.getElementById("addBtn")?.addEventListener("click", () => {
     if (out) return;
     clamp();
+    const src = document.getElementById("mainImg");
+    if (src && imgs[0]) flyToCart(src, imgs[0]);
     Cart.add({ id: p.id, name: p.name, price: p.price, image: imgs[0] || "", stock: p.stock }, +qty.value || 1);
     toast(t("added_toast", { name: `${qty.value} × ${p.name}` }));
   });
