@@ -52,39 +52,40 @@
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --bg: #0e1116;
-  --bg-sunken: #090b0f;
-  --surface: #161b22;
-  --surface-2: #1e242d;
-  --surface-3: #272e39;
-  --border: #2a313c;
-  --border-strong: #3a434f;
+  /* Calm — warm paper, muted clay. Single theme across the whole site. */
+  --bg: #F1ECE5;
+  --bg-sunken: #E7E0D6;
+  --surface: #FBF8F3;
+  --surface-2: #F0EAE1;
+  --surface-3: #E6DED2;
+  --border: #E1D8CB;
+  --border-strong: #CEC4B5;
 
-  --fg: #f8fafc;
-  --fg-muted: #aeb7c2;
-  --fg-subtle: #6b7480;
+  --fg: #2B2620;
+  --fg-muted: #6C6257;
+  --fg-subtle: #9A8F81;
 
-  --accent: #a855f7;          /* electric violet */
-  --accent-ink: #c084fc;
-  --accent-weak: rgba(168, 85, 247, 0.16);
-  --accent-line: rgba(168, 85, 247, 0.42);
-  --accent-2: #d946ef;        /* magenta edge for gradients */
+  --accent: #B06B4F;          /* muted clay */
+  --accent-ink: #935640;
+  --accent-weak: rgba(176, 107, 79, 0.10);
+  --accent-line: rgba(176, 107, 79, 0.26);
+  --accent-2: #C88B6F;
 
-  --primary: #a855f7;
-  --primary-fg: #0b0710;
-  --primary-hover: #b96bff;
+  --primary: #B06B4F;
+  --primary-fg: #FFFFFF;
+  --primary-hover: #995A40;
 
-  --success: #22c55e;  --success-weak: rgba(34,197,94,.16);
-  --warning: #fbbf24;  --warning-weak: rgba(251,191,36,.16);
-  --danger:  #f87171;  --danger-weak: rgba(248,113,113,.16);
-  --info:    #60a5fa;
+  --success: #4E8C63;  --success-weak: rgba(78,140,99,.14);
+  --warning: #B67A2E;  --warning-weak: rgba(182,122,46,.14);
+  --danger:  #C0564B;  --danger-weak: rgba(192,86,75,.12);
+  --info:    #4E7BA6;
 
-  --ring: rgba(168, 85, 247, 0.60);
-  --shadow-xs: 0 1px 2px rgba(0,0,0,.5);
-  --shadow-sm: 0 2px 6px rgba(0,0,0,.55);
-  --shadow-md: 0 12px 30px -10px rgba(0,0,0,.65);
-  --shadow-lg: 0 30px 70px -20px rgba(0,0,0,.75);
-  --header-bg: rgba(14, 17, 22, 0.85);
+  --ring: rgba(176, 107, 79, 0.45);
+  --shadow-xs: 0 1px 2px rgba(60,45,35,.05);
+  --shadow-sm: 0 2px 6px rgba(60,45,35,.08);
+  --shadow-md: 0 12px 30px -12px rgba(60,45,35,.16);
+  --shadow-lg: 0 30px 60px -20px rgba(60,45,35,.22);
+  --header-bg: rgba(241, 236, 229, 0.82);
 
   /* geometry — sharper, sportier */
   --r-pill: 999px;
@@ -103,7 +104,7 @@
   --ease-snap: cubic-bezier(.2,.9,.25,1);        /* fast responsive settle */
   --dur: .16s;
   --dur-fast: .13s;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Dark is the default (:root above). An explicit data-theme="dark" inherits it. */

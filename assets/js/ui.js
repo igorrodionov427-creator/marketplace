@@ -60,9 +60,9 @@ export const placeholder = () => `<div class="img-ph">${icon("box", 34)}</div>`;
 // ---- Theme -----------------------------------------------------------------
 const THEME_KEY = "mkt_theme";
 export function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY);
-  const theme = saved || "light"; // calm look — warm light by default
-  document.documentElement.setAttribute("data-theme", theme);
+  // Single calm theme site-wide. Clear any stale saved preference (e.g. old "dark").
+  try { localStorage.setItem(THEME_KEY, "light"); } catch (e) {}
+  document.documentElement.setAttribute("data-theme", "light");
 }
 function toggleTheme() {
   const cur = document.documentElement.getAttribute("data-theme");
@@ -160,7 +160,6 @@ export function mountChrome(activePage = "index.html") {
       <nav class="site-nav" id="siteNav">${navItems(activePage)}<span class="nav-underline" id="navUnderline"></span></nav>
       <div class="header-tools" style="display:flex;gap:8px;align-items:center;margin-left:auto">
         ${langSelect()}
-        <button class="icon-btn" id="themeBtn" aria-label="${t("lang_label")}"><span data-theme-icon>${icon(isLight ? "moon" : "sun")}</span></button>
         <a class="icon-btn" href="cart.html" id="cartLink" aria-label="${t("nav_cart")}">
           ${icon("cart")}
           <span class="cart-count" id="cartCount" hidden>0</span>
@@ -196,7 +195,6 @@ export function mountChrome(activePage = "index.html") {
   document.body.appendChild(footer);
 
   // wiring
-  document.getElementById("themeBtn").addEventListener("click", toggleTheme);
   const langSel = document.getElementById("langSel");
   if (langSel) langSel.addEventListener("change", (e) => { setLang(e.target.value); location.reload(); });
   const nav = document.getElementById("siteNav");
