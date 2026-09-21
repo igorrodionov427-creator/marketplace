@@ -120,6 +120,19 @@ function langSelect() {
   </div>`;
 }
 
+// Bold colour-block page header — the home/product look, reused everywhere.
+export function pageHero({ eyebrow = "", title = "", subtitle = "", color = "#94908c" } = {}) {
+  return `
+  <section class="page-hero" style="background:${color}">
+    <div class="page-hero__grain"></div>
+    <div class="page-hero__inner">
+      ${eyebrow ? `<span class="page-hero__eyebrow">${eyebrow}</span>` : ""}
+      <h1 class="page-hero__title">${title}</h1>
+      ${subtitle ? `<p class="page-hero__sub">${subtitle}</p>` : ""}
+    </div>
+  </section>`;
+}
+
 export function mountChrome(activePage = "index.html") {
   // language
   document.documentElement.lang = getLang();

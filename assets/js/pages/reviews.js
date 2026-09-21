@@ -1,5 +1,5 @@
 import { SITE } from "../config.js?v=2";
-import { icon, esc, initTheme, mountChrome, revealOnScroll } from "../ui.js";
+import { icon, esc, initTheme, mountChrome, revealOnScroll, pageHero } from "../ui.js";
 import { getLang } from "../i18n.js";
 
 initTheme();
@@ -65,22 +65,15 @@ function init() {
   mountChrome("reviews.html");
   const x = c();
   document.getElementById("app").innerHTML = `
-    <section class="hero" style="padding-block:var(--space-7) var(--space-6)">
-      <div class="hero__bg"><img class="photo" src="assets/img/bg/athlete.jpg" alt="" aria-hidden="true" loading="eager"><div class="hero__scrim"></div><span class="glow glow-1"></span><span class="glow glow-2"></span><div class="grid"></div></div>
-      <div class="reviews-hero reveal in">
-        <div>
-          <span class="eyebrow">${esc(SITE.name)} · ${esc(x.eyebrow)}</span>
-          <h1 style="margin-top:14px">${esc(x.title)}</h1>
-          <p class="muted" style="margin-top:14px;font-size:1.06rem;max-width:46ch">${esc(x.subtitle)}</p>
+    ${pageHero({ eyebrow: `${esc(SITE.name)} · ${esc(x.eyebrow)}`, title: esc(x.title), subtitle: esc(x.subtitle), color: "#A98C9C" })}
+    <section class="section" style="padding-top:0">
+      <div class="rating-card" style="max-width:560px">
+        <div class="rating-top">
+          <div class="rating-big">4.9</div>
+          <div><div class="rating-stars">★★★★★</div><div class="rating-count">${esc(x.basedOn)}</div></div>
         </div>
-        <div class="rating-card">
-          <div class="rating-top">
-            <div class="rating-big">4.9</div>
-            <div><div class="rating-stars">★★★★★</div><div class="rating-count">${esc(x.basedOn)}</div></div>
-          </div>
-          <div class="rbars">
-            ${DIST.map(([star, pct]) => `<div class="rbar"><span>${star}★</span><span class="track"><span class="fill" style="width:${pct}%"></span></span><span>${pct}%</span></div>`).join("")}
-          </div>
+        <div class="rbars">
+          ${DIST.map(([star, pct]) => `<div class="rbar"><span>${star}★</span><span class="track"><span class="fill" style="width:${pct}%"></span></span><span>${pct}%</span></div>`).join("")}
         </div>
       </div>
     </section>

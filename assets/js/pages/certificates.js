@@ -1,6 +1,6 @@
 import { SITE } from "../config.js?v=2";
 import { getPublishedCerts } from "../db.js?v=2";
-import { icon, esc, initTheme, mountChrome, revealOnScroll } from "../ui.js";
+import { icon, esc, initTheme, mountChrome, revealOnScroll, pageHero } from "../ui.js";
 import { t, getLang } from "../i18n.js";
 
 initTheme();
@@ -51,16 +51,7 @@ async function init() {
   try { certs = await getPublishedCerts(); } catch {}
 
   app.innerHTML = `
-    <section class="hero" style="padding-block:var(--space-7) var(--space-6)">
-      <div class="hero__bg"><span class="glow glow-1"></span><span class="glow glow-2"></span><div class="grid"></div></div>
-      <div class="reviews-hero reveal in" style="grid-template-columns:1fr;max-width:720px">
-        <div>
-          <span class="eyebrow">${esc(SITE.name)} · ${esc(x.eyebrow)}</span>
-          <h1 style="margin-top:14px">${esc(x.title)}</h1>
-          <p class="muted" style="margin-top:14px;font-size:1.06rem;max-width:52ch">${esc(x.subtitle)}</p>
-        </div>
-      </div>
-    </section>
+    ${pageHero({ eyebrow: `${esc(SITE.name)} · ${esc(x.eyebrow)}`, title: esc(x.title), subtitle: esc(x.subtitle), color: "#86A0A6" })}
 
     <section class="section" style="padding-top:0">
       ${certs.length

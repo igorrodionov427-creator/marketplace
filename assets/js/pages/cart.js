@@ -1,5 +1,6 @@
 import { Cart } from "../store.js";
-import { icon, money, esc, placeholder, initTheme, mountChrome, toast } from "../ui.js";
+import { SITE } from "../config.js?v=2";
+import { icon, money, esc, placeholder, initTheme, mountChrome, toast, pageHero } from "../ui.js";
 import { t } from "../i18n.js";
 
 initTheme();
@@ -40,7 +41,7 @@ function render() {
   }
 
   app.innerHTML = `
-    <h1 style="font-size:2.4rem;margin-bottom:var(--space-5)">${t("your_cart")}</h1>
+    ${pageHero({ eyebrow: `${SITE.name} · ${t("nav_cart")}`, title: t("your_cart"), color: "#B98B79" })}
     <div class="cart-layout">
       <div class="stack" id="lines">${items.map(line).join("")}</div>
       <aside class="summary">

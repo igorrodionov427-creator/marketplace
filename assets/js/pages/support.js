@@ -1,6 +1,6 @@
 import { SITE } from "../config.js?v=2";
 import { createTicket } from "../db.js?v=2";
-import { icon, esc, initTheme, mountChrome, toast } from "../ui.js";
+import { icon, esc, initTheme, mountChrome, toast, pageHero } from "../ui.js";
 import { t } from "../i18n.js";
 import { sendTicketNotification } from "../notify.js";
 
@@ -31,11 +31,7 @@ function init() {
   const app = document.getElementById("app");
 
   app.innerHTML = `
-    <div class="reveal in" style="max-width:640px;margin-bottom:var(--space-6)">
-      <span class="eyebrow">${SITE.name} · ${t("nav_support")}</span>
-      <h1 style="font-size:clamp(2rem,4vw,2.8rem);margin-top:12px">${t("support_title")}</h1>
-      <p class="muted" style="margin-top:12px;font-size:1.05rem">${t("support_desc")}</p>
-    </div>
+    ${pageHero({ eyebrow: `${SITE.name} · ${t("nav_support")}`, title: t("support_title"), subtitle: t("support_desc"), color: "#7E9B88" })}
 
     <div class="checkout-layout">
       <section class="panel">

@@ -1,7 +1,7 @@
 import { SITE, US_STATES, COUNTRIES } from "../config.js?v=2";
 import { Cart } from "../store.js";
 import { createOrder } from "../db.js?v=2";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText } from "../ui.js";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js";
 import { t } from "../i18n.js";
 import { sendOrderNotification } from "../notify.js";
 
@@ -130,8 +130,8 @@ function init() {
     US_STATES.map(([abbr, name]) => `<option value="${abbr}">${esc(name)}</option>`).join("");
 
   app.innerHTML = `
+    ${pageHero({ eyebrow: `${SITE.name} · ${t("nav_cart")}`, title: t("checkout"), color: "#8496B0" })}
     <a class="navlink" href="cart.html" style="display:inline-flex;gap:6px;align-items:center;margin-bottom:var(--space-4)">${icon("arrowLeft", 16)} ${t("back_to_cart")}</a>
-    <h1 style="font-size:2.4rem;margin-bottom:var(--space-5)">${t("checkout")}</h1>
     <form id="checkoutForm" novalidate>
       <div class="checkout-layout">
         <div>
