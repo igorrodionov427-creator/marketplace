@@ -13,6 +13,9 @@ const state = { q: "", cat: "all", sort: "new" };
 const COPY = {
   en: {
     proofLabel: "Reviews worldwide", more: "More",
+    toonKicker: "PEAKR SUPPLEMENTS",
+    toonDesc: "Lab-tested fuel for lifters, runners and everyday athletes. Genuine brands, honest doses, crypto checkout. Order now and hit your peak.",
+    discover: "DISCOVER IT",
     benTitle: "Why PEAKR",
     ben: [
       ["shield", "Lab-tested", "Only genuine brands, verified by third-party labs."],
@@ -29,6 +32,9 @@ const COPY = {
   },
   ru: {
     proofLabel: "Отзывов по всему миру", more: "Ещё",
+    toonKicker: "PEAKR СПОРТПИТ",
+    toonDesc: "Проверенное топливо для лифтеров, бегунов и любителей. Только оригинал, честные дозировки, оплата криптой. Закажи сейчас и выйди на пик.",
+    discover: "СМОТРЕТЬ",
     benTitle: "Почему PEAKR",
     ben: [
       ["shield", "Проверено", "Только оригинал, проверенный сторонними лабораториями."],
@@ -45,6 +51,137 @@ const COPY = {
   },
 };
 const L = () => COPY[getLang()] || COPY.en;
+
+/* ---------- TOONHUB-style hero carousel ---------------------------------- */
+// Featured rotation — each slot maps to a real product + its signature colours.
+const FEATURED = [
+  { id: "s1",  name: "Whey Protein Isolate", cat: "Protein",      img: "assets/img/products/whey-gold.png",   bg: "#F4845F", panel: "#F79B7F" },
+  { id: "s2",  name: "Mass Gainer 5000",     cat: "Mass Gainers", img: "assets/img/products/muscle-grow.png", bg: "#6BBF7A", panel: "#85CC92" },
+  { id: "s3",  name: "Pre-Workout Blackout", cat: "Pre-Workout",  img: "assets/img/products/pump-serum.png",  bg: "#E882B4", panel: "#ED9DC4" },
+  { id: "s11", name: "PEAKR Whey 450g",      cat: "Protein",      img: "assets/img/products/peakr-whey.png",  bg: "#6EB5FF", panel: "#8DC4FF" },
+];
+
+function toonHeroHTML(l) {
+  const items = FEATURED.map((f, i) => `
+    <div class="toon__item" data-i="${i}">
+      <img src="${f.img}" alt="${esc(f.name)}" draggable="false">
+    </div>`).join("");
+  return `
+  <section class="toon" id="toon" style="background-color:${FEATURED[0].bg}">
+    <div class="toon__stage">
+      <div class="toon__grain"></div>
+      <div class="toon__ghost" id="toonGhost">${esc(FEATURED[0].cat.toUpperCase())}</div>
+      <div class="toon__carousel" id="toonCar">${items}</div>
+
+      <div class="toon__info">
+        <p class="toon__kicker" id="toonKicker">${esc(l.toonKicker)}</p>
+        <p class="toon__name" id="toonName">${esc(FEATURED[0].name)}</p>
+        <p class="toon__desc">${esc(l.toonDesc)}</p>
+        <div class="toon__nav">
+          <button class="toon__btn" id="toonPrev" aria-label="Previous">${icon("arrowLeft", 26)}</button>
+          <button class="toon__btn" id="toonNext" aria-label="Next">${icon("arrowRight", 26)}</button>
+        </div>
+      </div>
+
+      <a class="toon__discover" id="toonDiscover" href="product.html?id=${FEATURED[0].id}">
+        <span>${esc(l.discover)}</span>${icon("arrowRight", 30)}
+      </a>
+    </div>
+  </section>`;
+}
+
+function initToon() {
+  const section = document.getElementById("toon");
+  const car = document.getElementById("toonCar");
+  if (!section || !car) return;
+  const ghost = document.getElementById("toonGhost");
+  const nameEl = document.getElementById("toonName");
+  const discover = document.getElementById("toonDiscover");
+  const items = [...car.querySelectorAll(".toon__item")];
+  const N = items.length;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let activeIndex = 0, isAnimating = false;
+  let isMobile = window.innerWidth < 640;
+
+  // preload
+  FEATURED.forEach((f) => { const im = new Image(); im.src = f.img; });
+
+  const Z = { center: 20, left: 10, right: 10, back: 5 };
+  function styleFor(role) {
+    if (role === "center") return {
+      transform: `translateX(-50%) scale(${isMobile ? 1.05 : 1})`,
+      filter: "none", opacity: "1", left: "50%",
+      height: isMobile ? "50%" : "82%", bottom: isMobile ? "20%" : "0",
+    };
+    if (role === "back") return {
+      transform: "translateX(-50%) scale(1)", filter: "blur(4px)", opacity: "0.9", left: "50%",
+      height: isMobile ? "15%" : "26%", bottom: isMobile ? "34%" : "14%",
+    };
+    // left / right
+    const isLeft = role === "left";
+    return {
+      transform: "translateX(-50%) scale(1)", filter: "blur(2px)", opacity: "0.85",
+      left: isMobile ? (isLeft ? "20%" : "80%") : (isLeft ? "27%" : "73%"),
+      height: isMobile ? "19%" : "33%", bottom: isMobile ? "34%" : "14%",
+    };
+  }
+
+  function roleOf(i) {
+    if (i === activeIndex) return "center";
+    if (i === (activeIndex + N - 1) % N) return "left";
+    if (i === (activeIndex + 1) % N) return "right";
+    return "back";
+  }
+
+  function render() {
+    items.forEach((el, i) => {
+      const role = roleOf(i);
+      Object.assign(el.style, styleFor(role));
+      el.style.zIndex = String(Z[role]);
+    });
+    const f = FEATURED[activeIndex];
+    section.style.backgroundColor = f.bg;
+    if (ghost) ghost.textContent = f.cat.toUpperCase();
+    if (nameEl) nameEl.textContent = f.name;
+    if (discover) discover.href = `product.html?id=${f.id}`;
+  }
+
+  function navigate(dir) {
+    if (isAnimating) return;
+    isAnimating = true;
+    activeIndex = dir === "next" ? (activeIndex + 1) % N : (activeIndex + N - 1) % N;
+    render();
+    setTimeout(() => { isAnimating = false; }, reduce ? 0 : 650);
+  }
+
+  document.getElementById("toonPrev")?.addEventListener("click", () => navigate("prev"));
+  document.getElementById("toonNext")?.addEventListener("click", () => navigate("next"));
+  // click a side figurine to bring it forward
+  items.forEach((el, i) => el.addEventListener("click", () => {
+    const role = roleOf(i);
+    if (role === "left") navigate("prev");
+    else if (role === "right") navigate("next");
+  }));
+
+  // swipe the stage (touch + mouse) — TikTok-style direct manipulation
+  let downX = null;
+  const stage = section.querySelector(".toon__stage");
+  stage.addEventListener("pointerdown", (e) => { downX = e.clientX; });
+  stage.addEventListener("pointerup", (e) => {
+    if (downX === null) return;
+    const dx = e.clientX - downX; downX = null;
+    if (Math.abs(dx) > 45) navigate(dx < 0 ? "next" : "prev");
+  });
+  stage.addEventListener("pointercancel", () => { downX = null; });
+
+  window.addEventListener("resize", () => {
+    const m = window.innerWidth < 640;
+    if (m !== isMobile) { isMobile = m; render(); }
+  });
+
+  render();
+}
 
 function stockBadge(p) {
   if (p.stock <= 0) return `<span class="badge badge--out">${t("sold_out")}</span>`;
@@ -105,52 +242,14 @@ function apply() {
 
 async function init() {
   mountChrome("index.html");
+  document.body.classList.add("home");
 
   const cats = ["all", ...SITE.categories];
   const l = L();
   document.getElementById("app").innerHTML = `
-    <section class="hero">
-      <div class="hero__bg">
-        <img class="photo" src="assets/img/bg/gym-hero.jpg" alt="" aria-hidden="true" loading="eager">
-        <div class="hero__scrim"></div>
-        <span class="glow glow-1"></span><span class="glow glow-2"></span>
-        <div class="grid"></div>
-        <svg class="bolt" viewBox="0 0 220 640" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs><linearGradient id="blt" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2,#d946ef)"/>
-          </linearGradient></defs>
-          <path d="M138 0 L70 250 L128 250 L48 640 L104 300 L52 300 Z" fill="url(#blt)" fill-opacity="0.18" stroke="url(#blt)" stroke-width="3"/>
-        </svg>
-      </div>
-      <div class="hero__grid reveal in">
-        <div class="hero__main">
-          <span class="eyebrow">${esc(SITE.name)} · ${t("hero_eyebrow_suffix")}</span>
-          <h1 style="margin-top:16px">${t("hero_title")}</h1>
-          <p style="margin-top:18px">${t("hero_desc")}</p>
-          <div class="hero__actions">
-            <a class="btn btn--primary btn--lg" href="#catalog">${icon("bag", 18)} ${t("hero_cta_shop")}</a>
-            <a class="btn btn--ghost btn--lg" href="admin.html">${icon("shield", 18)} ${t("hero_cta_seller")}</a>
-          </div>
-          <div class="proof">
-            <div class="proof__num">1.3<span>K</span></div>
-            <div class="proof__meta">
-              <div class="avatars">
-                <span class="av" style="background:#7c3aed">MK</span>
-                <span class="av" style="background:#db2777">ER</span>
-                <span class="av" style="background:#0891b2">DV</span>
-                <a class="more" href="reviews.html">+ ${l.more}</a>
-              </div>
-              <span class="proof__label">${l.proofLabel}</span>
-            </div>
-          </div>
-        </div>
-        <div class="hero__side">
-          ${l.ben.map(([ic, ttl]) => `<div class="pill"><span class="pill__ic">${icon("check", 15)}</span> ${ttl}</div>`).join("")}
-        </div>
-      </div>
-    </section>
+    ${toonHeroHTML(l)}
 
-    <section id="catalog" class="section" style="padding-top:0">
+    <section id="catalog" class="section">
       <div class="toolbar">
         <div class="field search">${icon("search", 18)}<input class="input" id="q" type="search" placeholder="${t("search_ph")}" aria-label="${t("search_ph")}"></div>
         <select class="select" id="cat" aria-label="${t("cat_all")}">
@@ -172,6 +271,8 @@ async function init() {
         ${l.rev.map(([txt, name]) => `<div class="review"><div class="review__stars">★★★★★</div><p class="review__text">${txt}</p><div class="review__name">${name}</div></div>`).join("")}
       </div>
     </section>`;
+
+  initToon();
 
   document.getElementById("q").addEventListener("input", (e) => { state.q = e.target.value; apply(); });
   document.getElementById("cat").addEventListener("change", (e) => { state.cat = e.target.value; apply(); });
