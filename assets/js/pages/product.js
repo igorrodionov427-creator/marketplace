@@ -5,6 +5,34 @@ import { t } from "../i18n.js";
 
 initTheme();
 
+// drag-to-scroll with momentum (mouse); touch keeps native inertia
+function enableDragScroll(el) {
+  if (!el) return;
+  let down = false, startX = 0, startLeft = 0, lastX = 0, vx = 0, lastT = 0, raf = 0;
+  el.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse") return;
+    down = true; el.classList.add("dragging");
+    startX = e.clientX; startLeft = el.scrollLeft; lastX = e.clientX; vx = 0; lastT = performance.now();
+    cancelAnimationFrame(raf);
+    try { el.setPointerCapture(e.pointerId); } catch {}
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    const now = performance.now(), dt = now - lastT || 16;
+    el.scrollLeft = startLeft - (e.clientX - startX);
+    vx = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = now;
+  });
+  const release = () => {
+    if (!down) return;
+    down = false; el.classList.remove("dragging");
+    let v = vx * 16;
+    const decay = () => { if (Math.abs(v) < 0.5) return; el.scrollLeft -= v; v *= 0.92; raf = requestAnimationFrame(decay); };
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) decay();
+  };
+  el.addEventListener("pointerup", release);
+  el.addEventListener("pointercancel", release);
+}
+
 function stockLine(p) {
   if (p.stock <= 0) return `<span class="badge badge--out">${icon("box", 14)} ${t("sold_out")}</span>`;
   if (p.stock <= 5) return `<span class="badge badge--low">${icon("box", 14)} ${t("only_left", { n: p.stock })}</span>`;
@@ -17,9 +45,9 @@ async function relatedStrip(current) {
   const pool = rel.length ? rel : all.filter((p) => p.id !== current.id).slice(0, 4);
   if (!pool.length) return "";
   return `
-    <section class="section reveal">
-      <h2 style="font-size:1.8rem;margin-bottom:var(--space-5)">${t("you_may_like")}</h2>
-      <div class="grid-products">
+    <section class="section">
+      <div class="section-head"><h2 style="font-size:1.8rem">${t("you_may_like")}</h2><span class="rule"></span></div>
+      <div class="rail" id="relatedRail">
         ${pool.map((p) => `
           <a class="card" href="product.html?id=${p.id}">
             <div class="card__media">${p.images?.[0] ? `<img src="${p.images[0]}" alt="${esc(p.name)}" loading="lazy">` : placeholder()}</div>
@@ -57,16 +85,19 @@ async function init() {
   }
 
   const imgs = p.images?.length ? p.images : [];
-  const mainImg = imgs[0] ? `<img id="mainImg" src="${imgs[0]}" alt="${esc(p.name)}">` : placeholder();
+  const galleryInner = imgs.length
+    ? `<div class="gallery__track" id="galTrack">${imgs.map((src) => `<img src="${src}" alt="${esc(p.name)}" draggable="false">`).join("")}</div>${imgs.length > 1 ? `<div class="gallery__dots" id="galDots">${imgs.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : ""}`
+    : placeholder();
   const out = p.stock <= 0;
+  let currentIndex = 0;
 
   app.innerHTML = `
     <a class="navlink" href="index.html" style="display:inline-flex;gap:6px;align-items:center;margin-bottom:var(--space-4)">${icon("arrowLeft", 16)} ${t("back_to_catalog")}</a>
     <div class="pdp reveal">
       <div>
-        <div class="gallery__main">${mainImg}</div>
+        <div class="gallery__main" id="galMain">${galleryInner}</div>
         ${imgs.length > 1 ? `<div class="gallery__thumbs" id="thumbs">
-          ${imgs.map((src, i) => `<button class="gallery__thumb${i === 0 ? " is-active" : ""}" data-src="${src}" data-i="${i}"><img src="${src}" alt="View ${i + 1}"></button>`).join("")}
+          ${imgs.map((src, i) => `<button class="gallery__thumb${i === 0 ? " is-active" : ""}" data-i="${i}"><img src="${src}" alt="View ${i + 1}" draggable="false"></button>`).join("")}
         </div>` : ""}
       </div>
       <div class="stack">
@@ -96,15 +127,51 @@ async function init() {
     </div>
     <div id="related"></div>`;
 
-  // gallery switching
-  const thumbs = document.getElementById("thumbs");
-  if (thumbs) {
-    thumbs.addEventListener("click", (e) => {
+  // swipeable gallery — drag with rubber-band + spring snap
+  const track = document.getElementById("galTrack");
+  if (track && imgs.length > 1) {
+    const main = document.getElementById("galMain");
+    const dots = document.getElementById("galDots");
+    const thumbs = document.getElementById("thumbs");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let index = 0, width = main.clientWidth, startX = 0, dx = 0, dragging = false;
+
+    const setTransition = (on) => { track.style.transition = on && !reduce ? "transform .42s var(--ease-spring)" : "none"; };
+    const place = (extra = 0) => { track.style.transform = `translateX(${-index * width + extra}px)`; };
+    const sync = () => {
+      currentIndex = index;
+      if (dots) [...dots.children].forEach((d, i) => d.classList.toggle("on", i === index));
+      if (thumbs) [...thumbs.children].forEach((b, i) => b.classList.toggle("is-active", i === index));
+    };
+    const go = (i) => { index = Math.max(0, Math.min(imgs.length - 1, i)); setTransition(true); place(); sync(); };
+
+    setTransition(false); place(); sync();
+    window.addEventListener("resize", () => { width = main.clientWidth; setTransition(false); place(); });
+
+    track.addEventListener("pointerdown", (e) => {
+      dragging = true; startX = e.clientX; dx = 0; width = main.clientWidth;
+      track.classList.add("dragging"); setTransition(false);
+      try { track.setPointerCapture(e.pointerId); } catch {}
+    });
+    track.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      dx = e.clientX - startX;
+      if ((index === 0 && dx > 0) || (index === imgs.length - 1 && dx < 0)) dx *= 0.35; // rubber-band
+      place(dx);
+    });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false; track.classList.remove("dragging");
+      const threshold = Math.max(40, width * 0.16);
+      go(dx <= -threshold ? index + 1 : dx >= threshold ? index - 1 : index);
+      dx = 0;
+    };
+    track.addEventListener("pointerup", end);
+    track.addEventListener("pointercancel", end);
+
+    if (thumbs) thumbs.addEventListener("click", (e) => {
       const b = e.target.closest(".gallery__thumb");
-      if (!b) return;
-      document.getElementById("mainImg").src = b.dataset.src;
-      thumbs.querySelectorAll(".gallery__thumb").forEach((el) => el.classList.remove("is-active"));
-      b.classList.add("is-active");
+      if (b) go(+b.dataset.i);
     });
   }
 
@@ -123,13 +190,14 @@ async function init() {
   document.getElementById("addBtn")?.addEventListener("click", () => {
     if (out) return;
     clamp();
-    const src = document.getElementById("mainImg");
-    if (src && imgs[0]) flyToCart(src, imgs[0]);
+    const src = document.getElementById("galMain");
+    if (src && imgs[currentIndex]) flyToCart(src, imgs[currentIndex]);
     Cart.add({ id: p.id, name: p.name, price: p.price, image: imgs[0] || "", stock: p.stock }, +qty.value || 1);
     toast(t("added_toast", { name: `${qty.value} × ${p.name}` }));
   });
 
   document.getElementById("related").innerHTML = await relatedStrip(p);
+  enableDragScroll(document.getElementById("relatedRail"));
   revealOnScroll();
 }
 
