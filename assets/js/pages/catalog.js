@@ -55,10 +55,10 @@ const L = () => COPY[getLang()] || COPY.en;
 /* ---------- TOONHUB-style hero carousel ---------------------------------- */
 // Featured rotation — each slot maps to a real product + its signature colours.
 const FEATURED = [
-  { id: "s1",  name: "Whey Protein Isolate", cat: "Protein",      img: "assets/img/products/whey-gold.png",   bg: "#BE7A62", panel: "#F79B7F" },
-  { id: "s2",  name: "Mass Gainer 5000",     cat: "Mass Gainers", img: "assets/img/products/muscle-grow.png", bg: "#6E9A7C", panel: "#85CC92" },
-  { id: "s3",  name: "Pre-Workout Blackout", cat: "Pre-Workout",  img: "assets/img/products/pump-serum.png",  bg: "#B27E9E", panel: "#ED9DC4" },
-  { id: "s11", name: "PEAKR Whey 450g",      cat: "Protein",      img: "assets/img/products/peakr-whey.png",  bg: "#7893BB", panel: "#8DC4FF" },
+  { id: "s1",  name: "Whey Protein Isolate", cat: "Protein",      img: "assets/img/products/whey-gold.png",   bg: "#B98B79", panel: "#F79B7F" },
+  { id: "s2",  name: "Mass Gainer 5000",     cat: "Mass Gainers", img: "assets/img/products/muscle-grow.png", bg: "#7E9B88", panel: "#85CC92" },
+  { id: "s3",  name: "Pre-Workout Blackout", cat: "Pre-Workout",  img: "assets/img/products/pump-serum.png",  bg: "#A98C9C", panel: "#ED9DC4" },
+  { id: "s11", name: "PEAKR Whey 450g",      cat: "Protein",      img: "assets/img/products/peakr-whey.png",  bg: "#8496B0", panel: "#8DC4FF" },
 ];
 
 function toonHeroHTML(l) {
@@ -191,7 +191,21 @@ function initToon() {
     if (m !== isMobile) { isMobile = m; render(); }
   });
 
+  // autoplay — advances on its own, pauses on hover / touch / hidden tab
+  const DELAY = 5000;
+  let timer = null;
+  const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+  const play = () => { if (reduce) return; stop(); timer = setInterval(() => navigate("next"), DELAY); };
+  section.addEventListener("pointerenter", stop);
+  section.addEventListener("pointerleave", play);
+  section.addEventListener("pointerdown", stop);
+  document.addEventListener("visibilitychange", () => (document.hidden ? stop() : play()));
+  // manual controls reset the countdown
+  ["toonPrev", "toonNext"].forEach((id) => document.getElementById(id)?.addEventListener("click", play));
+  dots.forEach((d) => d.addEventListener("click", play));
+
   render();
+  play();
 }
 
 function stockBadge(p) {
@@ -284,6 +298,11 @@ async function init() {
     </section>`;
 
   initToon();
+
+  // header turns solid once the coloured hero scrolls away
+  const onScroll = () => document.body.classList.toggle("scrolled", window.scrollY > window.innerHeight * 0.72);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
 
   document.getElementById("q").addEventListener("input", (e) => { state.q = e.target.value; apply(); });
   document.getElementById("cat").addEventListener("change", (e) => { state.cat = e.target.value; apply(); });

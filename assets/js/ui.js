@@ -61,7 +61,7 @@ export const placeholder = () => `<div class="img-ph">${icon("box", 34)}</div>`;
 const THEME_KEY = "mkt_theme";
 export function initTheme() {
   const saved = localStorage.getItem(THEME_KEY);
-  const theme = saved || "dark"; // sport look — dark by default
+  const theme = saved || "light"; // calm look — warm light by default
   document.documentElement.setAttribute("data-theme", theme);
 }
 function toggleTheme() {

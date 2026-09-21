@@ -5,6 +5,22 @@ import { t } from "../i18n.js";
 
 initTheme();
 
+// Calm category colour blocks — echo the carousel palette.
+const CATEGORY_COLORS = {
+  "Protein": "#B98B79",
+  "Mass Gainers": "#7E9B88",
+  "Pre-Workout": "#A98C9C",
+  "Creatine": "#8496B0",
+  "Amino Acids": "#86A0A6",
+  "Vitamins & Health": "#9AAE86",
+  "Fat Burners": "#C08A78",
+  "Recovery": "#8E93B5",
+  "Energy Bars": "#B39A76",
+  "Accessories": "#97918B",
+  "Other": "#94908C",
+  _default: "#94908C",
+};
+
 // drag-to-scroll with momentum (mouse); touch keeps native inertia
 function enableDragScroll(el) {
   if (!el) return;
@@ -91,11 +107,15 @@ async function init() {
   const out = p.stock <= 0;
   let currentIndex = 0;
 
+  const catColor = CATEGORY_COLORS[p.category] || CATEGORY_COLORS._default;
   app.innerHTML = `
-    <a class="navlink" href="index.html" style="display:inline-flex;gap:6px;align-items:center;margin-bottom:var(--space-4)">${icon("arrowLeft", 16)} ${t("back_to_catalog")}</a>
-    <div class="pdp reveal">
-      <div>
-        <div class="gallery__main" id="galMain">${galleryInner}</div>
+    <section class="pdp-hero" style="background:${catColor}">
+      <div class="pdp-hero__grain"></div>
+      <div class="pdp-hero__inner">
+        <a class="navlink pdp-back" href="index.html" style="display:inline-flex;gap:6px;align-items:center;margin-bottom:var(--space-4)">${icon("arrowLeft", 16)} ${t("back_to_catalog")}</a>
+        <div class="pdp reveal">
+          <div>
+            <div class="gallery__main" id="galMain">${galleryInner}</div>
         ${imgs.length > 1 ? `<div class="gallery__thumbs" id="thumbs">
           ${imgs.map((src, i) => `<button class="gallery__thumb${i === 0 ? " is-active" : ""}" data-i="${i}"><img src="${src}" alt="View ${i + 1}" draggable="false"></button>`).join("")}
         </div>` : ""}
@@ -125,7 +145,9 @@ async function init() {
         </div>
       </div>
     </div>
-    <div id="related"></div>`;
+      </div>
+    </section>
+    <div id="related" class="pdp-related"></div>`;
 
   // swipeable gallery — drag with rubber-band + spring snap
   const track = document.getElementById("galTrack");
