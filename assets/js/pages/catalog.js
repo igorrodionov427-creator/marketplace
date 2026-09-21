@@ -55,10 +55,10 @@ const L = () => COPY[getLang()] || COPY.en;
 /* ---------- TOONHUB-style hero carousel ---------------------------------- */
 // Featured rotation — each slot maps to a real product + its signature colours.
 const FEATURED = [
-  { id: "s1",  name: "Whey Protein Isolate", cat: "Protein",      img: "assets/img/products/whey-gold.png",   bg: "#F4845F", panel: "#F79B7F" },
-  { id: "s2",  name: "Mass Gainer 5000",     cat: "Mass Gainers", img: "assets/img/products/muscle-grow.png", bg: "#6BBF7A", panel: "#85CC92" },
-  { id: "s3",  name: "Pre-Workout Blackout", cat: "Pre-Workout",  img: "assets/img/products/pump-serum.png",  bg: "#E882B4", panel: "#ED9DC4" },
-  { id: "s11", name: "PEAKR Whey 450g",      cat: "Protein",      img: "assets/img/products/peakr-whey.png",  bg: "#6EB5FF", panel: "#8DC4FF" },
+  { id: "s1",  name: "Whey Protein Isolate", cat: "Protein",      img: "assets/img/products/whey-gold.png",   bg: "#BE7A62", panel: "#F79B7F" },
+  { id: "s2",  name: "Mass Gainer 5000",     cat: "Mass Gainers", img: "assets/img/products/muscle-grow.png", bg: "#6E9A7C", panel: "#85CC92" },
+  { id: "s3",  name: "Pre-Workout Blackout", cat: "Pre-Workout",  img: "assets/img/products/pump-serum.png",  bg: "#B27E9E", panel: "#ED9DC4" },
+  { id: "s11", name: "PEAKR Whey 450g",      cat: "Protein",      img: "assets/img/products/peakr-whey.png",  bg: "#7893BB", panel: "#8DC4FF" },
 ];
 
 function toonHeroHTML(l) {
@@ -86,6 +86,10 @@ function toonHeroHTML(l) {
       <a class="toon__discover" id="toonDiscover" href="product.html?id=${FEATURED[0].id}">
         <span>${esc(l.discover)}</span>${icon("arrowRight", 30)}
       </a>
+
+      <div class="toon__dots" id="toonDots">
+        ${FEATURED.map((_, i) => `<button class="toon__dot${i === 0 ? " on" : ""}" data-i="${i}" aria-label="Slide ${i + 1}"></button>`).join("")}
+      </div>
     </div>
   </section>`;
 }
@@ -97,9 +101,11 @@ function initToon() {
   const ghost = document.getElementById("toonGhost");
   const nameEl = document.getElementById("toonName");
   const discover = document.getElementById("toonDiscover");
+  const dots = [...document.querySelectorAll("#toonDots .toon__dot")];
   const items = [...car.querySelectorAll(".toon__item")];
   const N = items.length;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const DUR = 820;
 
   let activeIndex = 0, isAnimating = false;
   let isMobile = window.innerWidth < 640;
@@ -110,20 +116,20 @@ function initToon() {
   const Z = { center: 20, left: 10, right: 10, back: 5 };
   function styleFor(role) {
     if (role === "center") return {
-      transform: `translateX(-50%) scale(${isMobile ? 1.05 : 1})`,
+      transform: `translateX(-50%) scale(${isMobile ? 1 : 1})`,
       filter: "none", opacity: "1", left: "50%",
-      height: isMobile ? "50%" : "82%", bottom: isMobile ? "20%" : "0",
+      height: isMobile ? "44%" : "66%", bottom: isMobile ? "22%" : "4%",
     };
     if (role === "back") return {
-      transform: "translateX(-50%) scale(1)", filter: "blur(4px)", opacity: "0.9", left: "50%",
-      height: isMobile ? "15%" : "26%", bottom: isMobile ? "34%" : "14%",
+      transform: "translateX(-50%) scale(1)", filter: "blur(4px)", opacity: "0.85", left: "50%",
+      height: isMobile ? "13%" : "20%", bottom: isMobile ? "34%" : "16%",
     };
     // left / right
     const isLeft = role === "left";
     return {
-      transform: "translateX(-50%) scale(1)", filter: "blur(2px)", opacity: "0.85",
-      left: isMobile ? (isLeft ? "20%" : "80%") : (isLeft ? "27%" : "73%"),
-      height: isMobile ? "19%" : "33%", bottom: isMobile ? "34%" : "14%",
+      transform: "translateX(-50%) scale(1)", filter: "blur(2px)", opacity: "0.8",
+      left: isMobile ? (isLeft ? "20%" : "80%") : (isLeft ? "26%" : "74%"),
+      height: isMobile ? "16%" : "26%", bottom: isMobile ? "34%" : "16%",
     };
   }
 
@@ -145,18 +151,23 @@ function initToon() {
     if (ghost) ghost.textContent = f.cat.toUpperCase();
     if (nameEl) nameEl.textContent = f.name;
     if (discover) discover.href = `product.html?id=${f.id}`;
+    dots.forEach((d, i) => d.classList.toggle("on", i === activeIndex));
   }
 
-  function navigate(dir) {
-    if (isAnimating) return;
+  function goTo(i) {
+    if (isAnimating || i === activeIndex) return;
     isAnimating = true;
-    activeIndex = dir === "next" ? (activeIndex + 1) % N : (activeIndex + N - 1) % N;
+    activeIndex = ((i % N) + N) % N;
     render();
-    setTimeout(() => { isAnimating = false; }, reduce ? 0 : 650);
+    setTimeout(() => { isAnimating = false; }, reduce ? 0 : DUR);
+  }
+  function navigate(dir) {
+    goTo(dir === "next" ? activeIndex + 1 : activeIndex - 1);
   }
 
   document.getElementById("toonPrev")?.addEventListener("click", () => navigate("prev"));
   document.getElementById("toonNext")?.addEventListener("click", () => navigate("next"));
+  dots.forEach((d) => d.addEventListener("click", () => goTo(+d.dataset.i)));
   // click a side figurine to bring it forward
   items.forEach((el, i) => el.addEventListener("click", () => {
     const role = roleOf(i);
